@@ -8,7 +8,7 @@ import plotly.express as px
 ## Initialize Dash app
 app = dash.Dash(__name__, assets_folder='assets')
 server = app.server
-
+ 
 
 ## TODO - put this data in a separate file to reduce code complexity/density?
 ## TODO - if stored locally, add API to update the population?
