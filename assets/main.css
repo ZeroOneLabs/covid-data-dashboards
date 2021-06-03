@@ -1,0 +1,65 @@
+/*
+
+footer: style={'display': 'block', 'margin-top': '100px'}, 
+
+main-: style={'width': '90%', 'margin': '0 auto','border': 'thin solid black', 'padding': '10px'}
+
+*/
+
+body {
+    background-color: cadetblue;
+}
+
+.main-container {
+    width: 90%;
+    margin: 0 auto;
+    border: thin solid black;
+    padding: 10px;
+    background-color: floralwhite;
+}
+
+.figure {
+    /* background-color: transparent; */
+    border: darkgray thin solid;
+}
+
+.pie {
+    /* width: 40%; */
+}
+
+.hr-separator {
+    margin: 20pt 0 40pt 0
+}
+
+.dropdown-container {
+    display: flex;
+    /* align-items: center; */
+    margin-top: 10px;
+    /* border: thin dotted purple; */
+}
+
+.state-vlabel {
+    float: left;
+    /* vertical-align: text-bottom; */
+    /* border: thin solid red; */
+}
+
+.state-dropdown {
+    /* display: inline; */
+    /* float: left; */
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.label-dropdown-container {
+    width: 200px;
+    margin-right: 30px;
+}
+
+.footer {
+    display: block;
+    margin-top: 100px;
+}
+
+table.cell-table tr:nth-child(odd) { background-color: white;  border:1px lightgrey;}
+table.cell-table tr:nth-child(even){ background-color: #333; border:1px lightgrey; }
