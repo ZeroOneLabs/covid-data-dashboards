@@ -21,8 +21,11 @@ import pandas as pd
 # age_columns = [ "Data As Of", "Start Date", "End Date", "Group", "Year", "Month", "State", "Sex", "Age Group", "COVID-19 Deaths", "Total Deaths", "Pneumonia Deaths", "Pneumonia and COVID-19 Deaths", "Influenza Deaths", '"Pneumonia, Influenza, or COVID-19 Deaths"', "Footnote" ]
 
 
-
-race_demo_df = pd.read_csv("data/covidtracking.com/racial-demo-complete-latest.csv", header=0).fillna(0)
+## CRAP data set
+# race_demo_df = pd.read_csv("data/covidtracking.com/racial-demo-complete-latest.csv", header=0).fillna(0)
+race_demo_df = pd.read_csv("data/CDC/Provisional_COVID-19_Deaths__Distribution_of_Deaths_by_Race_and_Hispanic_Origin.csv", header=0).fillna(0)
+race_demo_df = race_demo_df.loc[(race_demo_df["Start Date"] == "01/01/2020") & (race_demo_df["Group"] == "By Total") & (race_demo_df["Indicator"] == "Count of COVID-19 deaths")]
+# 01/01/2020
 age_demo_df = pd.read_csv("data/CDC/Provisional_COVID-19_Deaths_by_Sex_and_Age.csv", header=0).fillna(0)
 # state_df = pd.read_json("data/state_info.json")
 with open("data/state_info.json") as j:
@@ -66,6 +69,14 @@ demo_sex = [ "Male", "Female" ]
 # }
 
 demo_races = [ "Black", "White", "Latinx", "Asian", "Multiracial", "Other" ]
+# "Non-Hispanic White"
+# "Non-Hispanic Black or African American"
+# "Non-Hispanic American Indian or Alaska Native"
+# "Non-Hispanic Asian"
+# "Non-Hispanic Native Hawaiian or Other Pacific Islander"
+# "Non Hispanic more than one race"
+# "Hispanic or Latino"
+
 demo_types = [ "Cases_", "Deaths_"]
 
 demo_race_cases = []
@@ -74,7 +85,7 @@ for demo in demo_races:
         demo_race_cases.append(dt + demo)
 
 
-parent_dict = {}
+parent_dict = { "Race": {}, "Age": {}, "Totals": {} }
 for st, state in state_df["states"].items():
     state_name = str(state["long"])
 
@@ -82,7 +93,7 @@ for st, state in state_df["states"].items():
     # continue
 
     try:
-        test = race_demo_df.loc[race_demo_df["State"] == st]["Cases_Total"].values[0]
+        test = race_demo_df.loc[race_demo_df["State"] == state_name]["Cases_Total"].values[0]
     except:
         continue
 
@@ -92,8 +103,8 @@ for st, state in state_df["states"].items():
     state_df = age_demo_df.loc[(age_demo_df["State"] == state_name) & (age_demo_df["Start Date"] == "01/01/2020") & (age_demo_df["End Date"] == "05/22/2021") & (age_demo_df["Group"] == "By Total")]
 
     # Get cases for state from racial demo file
-    demo_all_cases = race_demo_df.loc[race_demo_df["State"] == st]["Cases_Total"].values[0]
-    demo_all_death = race_demo_df.loc[race_demo_df["State"] == st]["Deaths_Total"].values[0]
+    demo_all_cases = race_demo_df.loc[race_demo_df["State"] == state_name]["Cases_Total"].values[0]
+    demo_all_death = race_demo_df.loc[race_demo_df["State"] == state_name]["Deaths_Total"].values[0]
     # Iterate over age groups (all sexes)
 
     # print(f"Age statistics for {state_name}")
@@ -115,9 +126,11 @@ for st, state in state_df["states"].items():
         state_dict[state_name]["Age"][age]["m_rate"] = age_mortality_rate
         state_dict[state_name]["Age"][age]["pct_covid_deaths"] = age_pct_of_covid_deaths
 
-    # INIT race_dict
-    race_dict = {"Black":{"cases":0,"death":0,"mrate":0,"pct_covid_deaths":0},"White":{"cases":0,"death":0,"mrate":0,"pct_covid_deaths":0},"Latino":{"cases":0,"death":0,"mrate":0,"pct_covid_deaths":0},"Asian":{"cases":0,"death":0,"mrate":0,"pct_covid_deaths":0},"Multiracial":{"cases":0,"death":0,"mrate":0,"pct_covid_deaths":0},"Other":{"cases":0,"death":0,"mrate":0,"pct_covid_deaths":0}}
+    parent_dict[state_name] = state_dict[state_name]
+
+
     for race in demo_races:
+        race_dict = { race : {"cases":0,"death":0,"m_rate":0,"pct_covid_deaths":0}}
         # Black
         #   for type in types:
         #       Black+_cases: 
@@ -127,20 +140,23 @@ for st, state in state_df["states"].items():
         #       add to race_dict under "Black"
         # and so on...'
 
-        race_cases = race_demo_df.loc[race_demo_df["State"] == st][demo_types[0]+race].values[0]
-        race_death = race_demo_df.loc[race_demo_df["State"] == st][demo_types[1]+race].values[0]
+        race_cases = race_demo_df.loc[race_demo_df["State"] == state_name][demo_types[0]+race].values[0]
+        race_death = race_demo_df.loc[race_demo_df["State"] == state_name][demo_types[1]+race].values[0]
         race_mrate = round((race_death / race_cases)*100,3)
-        
+        race_pct_of_covid_deaths = round((race_death / demo_all_death) * 100, 2)
+
+        race_dict[race]["cases"] = race_cases
+        race_dict[race]["death"] = race_death
+        race_dict[race]["m_rate"] = race_mrate
+        race_dict[race]["pct_covid_deaths"] = race_pct_of_covid_deaths
+
+
         # print(f"{race}: Cases {race_cases}, Deaths {race_death}, Mortality Rate: {race_mrate}%")
         break
-        # Get race death #
-        # Calculate each stat
 
-        # Add stat to main dict
-            
+    parent_dict[state_name]["Race"] = race_dict
 
 
-    parent_dict[state_name] = state_dict[state_name]
     # Stop at one state so far.
     break
 print(json.dumps(parent_dict))
