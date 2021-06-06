@@ -63,3 +63,12 @@ body {
 
 table.cell-table tr:nth-child(odd) { background-color: white;  border:1px lightgrey;}
 table.cell-table tr:nth-child(even){ background-color: #333; border:1px lightgrey; }
+
+.row {
+    content: "";
+    display: flex;
+    clear: both; 
+}
+
+.bar-chart { width: 69%; }
+.pie-chart { width: 30%; }
