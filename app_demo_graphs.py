@@ -323,6 +323,7 @@ html.P(children=[
 
 if __name__ == '__main__':
     app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1'))
+    # app.run_server(host=os.getenv('HOST','127.0.0.1'))
 
 
 # print(json.dumps(parent_dict))

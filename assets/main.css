@@ -106,3 +106,12 @@ table.cell-table tr:nth-child(even){ background-color: #333; border:1px lightgre
     min-width: 500px;
     max-width: 500px;
 } */
+
+@media print  
+{
+    div{
+        page-break-inside: avoid;
+    }
+}
+
+
