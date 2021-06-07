@@ -1,6 +1,5 @@
-from datetime import datetime
+import pandas as pd
 
-today = datetime.today()
-today_str = today.strftime("%Y-%m-%d")
+states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
 
-print(today_str)
+print(states_totals_df.loc[states_totals_df["state"] == "Alabama"]["deaths"].values[0])
