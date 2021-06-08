@@ -362,15 +362,6 @@ html.P(children=[
         'padding': "1em"
     })
 ])
-@app.callback(
-    #     ID from dropdown      input data
-    Output('state-info-list', 'list'),
-    #   ID from input   input data
-    Input('drop-down-chooser', 'value'))
-def update_figure(selected_state):
-
-    return list
-
 
 
 if __name__ == '__main__':
