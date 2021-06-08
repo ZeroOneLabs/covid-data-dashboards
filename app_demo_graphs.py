@@ -14,6 +14,8 @@ from dash_table.Format import Format, Scheme, Symbol, Group
 import plotly.express as px
 import plotly.graph_objects as pxg
 
+import app_demo_data_writer as addw
+import nyt_data_downloader as ndd
 
 today = datetime.today()
 today_str = today.strftime("%Y-%m-%d")
@@ -23,11 +25,23 @@ count = 0
 
 app = dash.Dash(__name__)
 
+try:
+    ndd.download_nyt_data()
+    us_totals_df = pd.read_csv("data/NYT/us-latest.csv")
+    states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
+except:
+    ndd.download_nyt_data()
+    us_totals_df = pd.read_csv("data/NYT/us-latest.csv")
+    states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
 
-us_totals_df = pd.read_csv("data/NYT/us-latest.csv")
-states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
-with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
-    state_file = json.load(f)
+try:
+    with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
+        state_file = json.load(f)
+except:
+    addw.write_data()
+    with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
+        state_file = json.load(f)
+
 
 us_totals_cases = us_totals_df["cases"].values[0]
 us_totals_death = us_totals_df["deaths"].values[0]
@@ -58,17 +72,27 @@ html_container_list.append(
 )
 
     # html_container_list.append()
+state_anchor_dict = {}
+for state, data in state_file.items():
+    state_anchor_dict[state] = state.replace(' ', '_')
 
-
+state_link_list = []
+for state_name, state_anchor in state_anchor_dict.items():
+    state_link_list.append( html.Li(children=[html.A(children=state_name, href=f'#{state_anchor}')]) )
+# html.Li(children=[html.A(children={state_name}, href=f'#{state_anchor}')]) 
 html_container_list.append(
     html.Div(children=[
-        html.H2(children="State and Territory Statistics")
+        html.H2(children="State and Territory Statistics"),
+        html.P(children=state_link_list)
     ])
 )
+
+##
 ## Iterator to define list of graphs/data/lists for each state
+##
 for state, data in state_file.items():
     state_list = []
-    
+
     state_id_str = state.replace(" ", "-").lower()
 
     ## Age demo statistics
@@ -216,7 +240,9 @@ for state, data in state_file.items():
     state_death = states_totals_df.loc[states_totals_df["state"] == state]["deaths"].values[0]
     state_mrate = round((state_death / state_cases) * 100, 3)
 
-    html_container_list.append(html.H3(children=state))
+    html_container_list.append(html.H3(children=[
+        html.A(children=state, id=state.replace(' ', '-'))
+    ]))
     html_container_list.append(html.Div(children=[
         
         html.Table(children=[
@@ -303,6 +329,19 @@ html.P(children=[
                     html.Li(children=["Senior: 65-85+"]),
                     ])
                 ]),
+            html.Br(),
+            html.P(children="Data gathered from the following sources:"), 
+                html.P(children=[
+                    html.Li(children=[
+                        html.A(children="CDC: Provisional COVID-19 Deaths", href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Deaths-Distribution-of-Deaths/pj7m-y5uh", target="_blank")
+                        ]),
+                    html.Li(children=[
+                        html.A(children="CDC: Provisional COVID-19 Deaths by Week, Sex, and Age", href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Deaths-by-Week-Sex-and-Age/vsak-wrfu", target="_blank")
+                    ]),
+                    html.Li(children=[
+                        html.A(children="New York Times' GitHub COVID-19 Repository", href="https://github.com/nytimes/covid-19-data", target="_blank")
+                    ]),
+            ]),
             html.Br(),
             html.Br(),
             html.Br(),
