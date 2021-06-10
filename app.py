@@ -24,6 +24,7 @@ today_str = today.strftime("%Y-%m-%d")
 html_container_list = []
 state_info_data_list = []
 app = dash.Dash(__name__)
+server = app.server
 app.title="Zero One Labs - US COVID Demographic Dashboard"
 
 pie_legend_font_config = dict(family="Courier", size=24)
