@@ -88,16 +88,16 @@ html_container_list.append(
         ], className="stat-table"),
         html.Table(children=[
             html.Tr(children=[
-                html.Td(children="Totals"),
+                html.Td(children="Mortality Rates"),
                 html.Td()
             ]),
             html.Tr(children=[
-                html.Td(children="COVID Cases"),
-                html.Td(children=f": {us_totals_cases:,}", className="nat-stat-num")
+                html.Td(children="Average Mortality Rage"),
+                html.Td(children=f": {us_totals_mrate:,}", className="nat-stat-num")
             ]),
             html.Tr(children=[
-                html.Td(children="COVID Deaths"),
-                html.Td(children=f": {us_totals_death:,}", className="nat-stat-num")
+                html.Td(children="Mortality rate (Senior deaths removed)"),
+                html.Td(children=f": {us_totals_mrate_noseniors:,}", className="nat-stat-num")
             ])
         ], className="stat-table"),
     ])
