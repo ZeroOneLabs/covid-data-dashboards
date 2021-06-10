@@ -93,11 +93,11 @@ html_container_list.append(
             ]),
             html.Tr(children=[
                 html.Td(children="Average Mortality Rage"),
-                html.Td(children=f": {us_totals_mrate:,}", className="nat-stat-num")
+                html.Td(children=f": {us_totals_mrate:,}%", className="nat-stat-num")
             ]),
             html.Tr(children=[
                 html.Td(children="Mortality rate (Senior deaths removed)"),
-                html.Td(children=f": {us_totals_mrate_noseniors:,}", className="nat-stat-num")
+                html.Td(children=f": {us_totals_mrate_noseniors:,}%", className="nat-stat-num")
             ])
         ], className="stat-table"),
     ])
