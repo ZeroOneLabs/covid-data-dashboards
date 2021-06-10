@@ -1,14 +1,6 @@
 .DS_Store
-data/us-city-population-2019-v2.json
-data/us-city-population-2019.json
-data/us-city-population-2019.xlsx
-data/CDC/Provisional_COVID-19_Deaths_by_Sex_and_Age.csv
-data/city/Houston/2021-05-28-summary.csv
-data/city/Los Angeles/2021-05-26-los-angeles-covid-data.json
-data/city/Los Angeles/2021-05-31-los-angeles-covid-data.json
-data/covidtracking.com/*
-data/JohnsHopkins/*
-data/NYT/*-historical.csv
-us_city_population_2019_formatter.py
-test_playground.py
-playground.ipynb
+venv
+*.pyc
+.DS_Store
+.env
+__pycache__
