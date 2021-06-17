@@ -4,3 +4,6 @@ venv
 .DS_Store
 .env
 __pycache__
+data/CDC/*
+data/NYT/*
+data/ZeroOneLabs/*
