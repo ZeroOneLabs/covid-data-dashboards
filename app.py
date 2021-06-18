@@ -8,12 +8,9 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
-import dash_table.FormatTemplate as FormatTemplate
 from dash.dependencies import Input, Output
-from dash_table.Format import Format, Scheme, Symbol, Group
 
 import plotly.express as px
-import plotly.graph_objects as pxg
 
 import data_writer as dw
 import data_downloader as dd
@@ -102,10 +99,6 @@ html_container_list.append(
         ], className="stat-table"),
     ])
 )
-
-## TODO: Change state iterator to function to return list of data to insert into ID of a dcc component.
-## TODO: Create drop-down for each state/territory to call @app.callback
-## TODO: Create @app.callback to recieve a state name, call the function to return list of data, then set the output to the cdd ID.
 
 def build_state_graphs(state) -> list:
     state_info_data_list = []
@@ -609,8 +602,6 @@ app.layout = html.Div(children=[
 
             html.Hr(),
 
-
-            # state_table_dict
             html.Br(),
             html.P(children="Data gathered from the following sources:"), 
                 html.P(children=[
@@ -637,15 +628,9 @@ app.layout = html.Div(children=[
     Input('drop-down-chooser', 'value'))
 def update_figure(value):
     state_list = build_state_graphs(value)
-    # print(f"Received value: {value}. State List: {state_list}")
     return state_list
 
 
 if __name__ == '__main__':
     # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1'))
-    # app.run_server(debug=True,host=os.getenv('HOST','192.168.1.20'))
-    # app.run_server(host=os.getenv('HOST','127.0.0.1'))
     app.run_server(debug=False)
-
-
-# print(json.dumps(parent_dict))
