@@ -13,14 +13,32 @@ today_str = datetime.strftime(datetime.today(), "%Y-%m-%d")
 # Datetime object created from a format to eliminate hours, minutes, seconds, miliseconds.
 today_obj = datetime.strptime(today_str, "%Y-%m-%d")
 
+# List of data folders that we'll check if they exist
+# This was implemented after I decided to purge the files locally before comitting, 
+# so that the Github repo wouldn't get filled with file downloads.
+data_dir_names = [ "CDC", "NYT", "ZeroOneLabs" ]
+
+for dir_name in data_dir_names:
+
+    dir = os.path.join(base_dir, f"data/{dir_name}")
+
+    if not os.path.exists(dir):
+        try:
+            os.mkdir(dir)
+        except:
+            print(f"There was an error creating the directory: {dir}")
+
 
 
 def download_file(url, path):
-    # print(f"Trying to download {url} to {path}")
+
+    print(f"Downloading file [{url}] to local path [{path}]")
+
     try:
         urllib.request.urlretrieve(url, path)
     except Exception as e:
         print(e)
+
 
 def download_cdc_data():
     cdc_data_path = os.path.join(base_dir, "data/CDC")
@@ -40,7 +58,6 @@ def download_cdc_data():
         "Deaths_by_Race_and_Hispanic_Origin": f"https://data.cdc.gov/resource/pj7m-y5uh.json?end_week={latest_date_str_age}&start_week=2020-01-01T00:00:00.000",
         "Deaths_by_Sex_and_Age": f"https://data.cdc.gov/api/id/9bhg-hcku.json?$query=select%20*%2C%20%3Aid%20where%20((upper(%60group%60)%20%3D%20upper(%27By%20Total%27))%20and%20(%60end_date%60%20%3D%20%27{latest_date_str_age}%27)%20and%20((upper(%60state%60)%20!%3D%20upper(%27United%20States%27)%20OR%20%60state%60%20IS%20NULL))%20and%20(upper(%60sex%60)%20%3D%20upper(%27All%20Sexes%27))%20and%20((%60year%60%20!%3D%201999%20OR%20%60year%60%20IS%20NULL)))"
     }
-
 
     for filename, url in cdc_file_names.items():
         filepath = os.path.join(cdc_data_path, f"{today_str}-{filename}.json")
