@@ -424,6 +424,7 @@ for state in state_file.keys():
         state_table_race_dict[race_demo].append(data["Race"][race_demo]["death"])
 
 state_table_dict_df = pd.DataFrame(state_table_dict)
+state_table_dict_df = state_table_dict_df.sort_values(by="Mortality Rate", ascending=False)
 state_table_age_dict_df = pd.DataFrame(state_table_age_dict)
 state_table_race_dict_df = pd.DataFrame(state_table_race_dict)
 
@@ -441,9 +442,35 @@ app.layout = html.Div(children=[
                 "marginBottom": "100px"
             })
         ]),
+        html.Div(children=[
+            html.H3(children="About this COVID-19 Dashboard"),
+            dcc.Markdown(children='''
+            This dashboard was created out of necessity, when I asked myself the question "What age group makes up the majority of COVID deaths for my state?" and "most dashboards list cases with 'rolling averages' or 'last 7 days', but no deaths? How lethal is this disease if I can't measure the cases against the deaths?"...
+            '''),
+            html.P(children="[show more...]", id="purpose-title"),
+            dcc.Markdown(children='''
+            This lead me down a path of trying to find a complete set of data that I could download for my state, which then lead me to find more data for each state... which then lead me down the path to finding COVID data about age ranges and race groups.
 
-        # This is where we display main content above graphs
+            The ultimate purpose of this dashboard is to help people like you empower yourselves with simple, yet effective knowledge that comes from the New York Times and the CDC. I want to help educate people on generally how deadly the COVID-19 disease in the United States by pulling official data and calculating those numbers to get a mortality rate – or rather the relative chances one would have if they contracted COVID in a certain geographical area in the United States.
+
+            **Note 1**: This graph is by no means to be taken as medical advice. If you have any serious concerns about your health, I urge you to contact your doctor or your healthcare maintenance organization (HMO). I advise you to follow your local and federal ordinances, in regards to any safety measures for mitigating the effects of COVID-19.
+
+            **Note 2**: Age and race groups are defined at the bottom of the page.
+
+            &nbsp;
+
+            Below you will find a summary of national statistical data for the US, and a "state picker" which uses a drop-down utility to pick which state you would like to see graphs for. Please be aware that the graphs may take 1-2 seconds to update. Below the graphs are some data tables I created, in which you can sort each column of data (e.g. to sort states by mortality rate to see which state has the least to worst mortality rate).
+
+            If you are viewing this data dashboard on a tablet or mobile device, I would advise you to turn your device into "landscape mode" in order to see the graphs and text a little better, or to view this on a desktop web browser.
+
+            Thanks!
+
+            Zan
+
+            ''', id="purpose-div")
+        ]),
         html.Div(children=html_container_list, className="main-container"),
+        # This is where we display main content above graphs
         html.Div(className="main-container", children=[
             # This is where we show the dropdown of states/territories to choose from
             html.Div(children=[
@@ -618,12 +645,7 @@ if __name__ == '__main__':
     # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1'))
     # app.run_server(debug=True,host=os.getenv('HOST','192.168.1.20'))
     # app.run_server(host=os.getenv('HOST','127.0.0.1'))
-    # port = int(os.environ.get("PORT", 5000))
-    app.run_server(
-        debug=False,
-        # host="0.0.0.0",
-        # port=port
-    )
+    app.run_server(debug=False)
 
 
 # print(json.dumps(parent_dict))
