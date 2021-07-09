@@ -61,7 +61,8 @@ last_updated_age = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Sex_and_Age.jso
 us_totals_cases = us_totals_df["cases"].values[0]
 us_totals_death = us_totals_df["deaths"].values[0]
 us_totals_mrate = round((us_totals_death / us_totals_cases) * 100, 3)
-us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_cases) * 100, 3)
+us_totals_deaths_noseniors = us_totals_cases - national_senior_deaths
+us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_deaths_noseniorsb) * 100, 3)
 
 
 ## Iterator to define list of National data
@@ -93,7 +94,7 @@ html_container_list.append(
                 html.Td(children=f": {us_totals_mrate:,}%", className="nat-stat-num")
             ]),
             html.Tr(children=[
-                html.Td(children="Mortality rate (Senior deaths removed)"),
+                html.Td(children="Mortality rate (Senior deaths & cases removed)"),
                 html.Td(children=f": {us_totals_mrate_noseniors:,}%", className="nat-stat-num")
             ])
         ], className="stat-table"),
