@@ -62,7 +62,7 @@ us_totals_cases = us_totals_df["cases"].values[0]
 us_totals_death = us_totals_df["deaths"].values[0]
 us_totals_mrate = round((us_totals_death / us_totals_cases) * 100, 3)
 us_totals_deaths_noseniors = us_totals_cases - national_senior_deaths
-us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_deaths_noseniorsb) * 100, 3)
+us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_deaths_noseniors) * 100, 3)
 
 
 ## Iterator to define list of National data
