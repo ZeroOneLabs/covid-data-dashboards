@@ -1,5 +1,5 @@
-import json
 import os
+import json
 from datetime import datetime
 
 import pandas as pd
@@ -9,6 +9,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
 from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 
 import plotly.express as px
 
@@ -20,7 +21,7 @@ today_str = today.strftime("%Y-%m-%d")
 
 html_container_list = []
 state_info_data_list = []
-app = dash.Dash(__name__)
+app = dash.Dash(__name__,external_stylesheets=[dbc.themes.LUX])
 server = app.server
 app.title="Zero One Labs - US COVID Demographic Dashboard"
 
@@ -29,6 +30,7 @@ pie_graph_margins = dict(t=10, b=10, l=10, r=10)
 bar_legend_font_config = dict(family="Helvetica", size=18, color="Black")
 bar_graph_margins = dict(r=10)
 
+dropdown_default_state = "California"
 
 try:
     dd.download_nyt_data()
@@ -38,6 +40,14 @@ except:
     dd.download_nyt_data()
     us_totals_df = pd.read_csv("data/NYT/us-latest.csv")
     states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
+
+# Delete regions that throw errors from the States data frame
+#if state_name == "Northern Mariana Islands" or state_name == "Virgin Islands" or state_name == "Puerto Rico":
+for drop_state in ["Northern Mariana Islands", "Virgin Islands", "Puerto Rico", "Guam"]:
+    states_totals_df = states_totals_df.drop(
+            states_totals_df[states_totals_df['state'] == drop_state].index
+        )
+
 
 try:
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
@@ -53,7 +63,13 @@ for state, data in state_file.items():
         if age_demo == "65-74 years" or age_demo == "75-54 years" or age_demo == "85 years and over":
             national_senior_deaths += data["Age"][age_demo]["total_deaths"]
 
+state_name_list = [ state for state in states_totals_df['state'] ]
 
+state_name_link_html_list = []
+for state in state_name_list:
+    state_name_link_html_list.append(
+        html.A(children=[state], href="/" + state, className="state_link")
+    )
 
 last_updated_race = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Race_and_Hispanic_Origin.json")["end_week"].values[0].replace('T00:00:00.000', '')
 last_updated_age = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Sex_and_Age.json")["end_date"].values[0].replace('T00:00:00.000', '')
@@ -64,40 +80,55 @@ us_totals_mrate = round((us_totals_death / us_totals_cases) * 100, 3)
 us_totals_deaths_noseniors = us_totals_cases - national_senior_deaths
 us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_deaths_noseniors) * 100, 3)
 
+with open("data/state_info.json", "r") as jinfo:
+    population_info = json.load(jinfo)
+
+us_population = population_info['national']['US']['pop']
+
+us_percent_infected = round((us_totals_cases / us_population) * 100 ,2)
+us_percent_killed = round((us_totals_death / us_population) * 100 ,2)
+
 
 ## Iterator to define list of National data
 
 html_container_list.append(
     html.Div(children=[
-        html.H2(children="National Statistics"),
+        html.P(className="spacer"),
+        html.H3(children="National Statistics"),
+        html.P(className="spacer"),
         html.Table(children=[
             html.Tr(children=[
-                html.Td(children="Totals"),
-                html.Td()
+                html.Th("COVID Case", className="nat-stat-header"),
+                html.Th("Totals", className="nat-stat-header"),
+                html.Th("% of US Population", className="nat-stat-header")
             ]),
             html.Tr(children=[
-                html.Td(children="COVID Cases"),
-                html.Td(children=f": {us_totals_cases:,}", className="nat-stat-num")
+                html.Td(children="Cases"),
+                html.Td(children=f" {us_totals_cases:,}", className="nat-stat-num"),
+                html.Td(children=f" {us_percent_infected}%", className="nat-stat-num")
             ]),
             html.Tr(children=[
-                html.Td(children="COVID Deaths"),
-                html.Td(children=f": {us_totals_death:,}", className="nat-stat-num")
+                html.Td(children="Deaths"),
+                html.Td(children=f" {us_totals_death:,}", className="nat-stat-num"),
+                html.Td(children=f" {us_percent_killed}%", className="nat-stat-num")
             ])
         ], className="stat-table"),
         html.Table(children=[
             html.Tr(children=[
-                html.Td(children="Mortality Rates"),
-                html.Td()
+                html.Th(children="Rates"),
+                html.Th()
             ]),
             html.Tr(children=[
-                html.Td(children="Average Mortality Rate"),
-                html.Td(children=f": {us_totals_mrate:,}%", className="nat-stat-num")
+                html.Td(children="Average Mortality Rate (All Ages)"),
+                html.Td(children=f"{us_totals_mrate:,}%", className="nat-stat-num")
             ]),
             html.Tr(children=[
-                html.Td(children="Mortality rate (Senior deaths & cases removed)"),
-                html.Td(children=f": {us_totals_mrate_noseniors:,}%", className="nat-stat-num")
+                html.Td(children="Young-Adult Mortality rate (Senior deaths & cases removed)"),
+                html.Td(children=f"{us_totals_mrate_noseniors:,}%", className="nat-stat-num")
             ])
         ], className="stat-table"),
+        html.P(className="spacer"),
+        html.P(className="spacer"),
     ])
 )
 
@@ -273,15 +304,18 @@ def build_state_graphs(state) -> list:
     state_mrate = round((state_death / state_cases) * 100, 3)
     state_mrate_noseniors = round(((state_death - senior_deaths)/ state_cases) * 100, 3)
 
-    state_info_data_list.append(html.H2(children=[
-        html.A(children=state, id=state.replace(' ', '-'))
-    ]))
+    state_info_data_list.append(
+        html.H2(children=[
+            html.A(children=state, id=state.replace(' ', '-'), className="state_title"),
+            html.P(className="spacer")
+        ])
+    )
     state_info_data_list.append(html.Div(children=[
         
         html.Table(children=[
             html.Th(children=[
-                html.Td(children="Totals", className="state-stat-title state-stat-row"),
-                html.Td()
+                html.Th(children="Totals", className="state-stat-title state-stat-row"),
+                html.Th()
             ]),
             html.Tr(children=[
                 html.Td(children="COVID Cases", className="state-stat-title state-stat-row"),
@@ -294,8 +328,8 @@ def build_state_graphs(state) -> list:
         ], className="stat-table"),
         html.Table(children=[
             html.Th(children=[
-                html.Td(children="Mortality Rates", className="state-stat-title state-stat-row"),
-                html.Td()
+                html.Th(children="Mortality Rates", className="state-stat-title state-stat-row"),
+                html.Th()
             ]),
             html.Tr(children=[
                 html.Td(children="All People", className="state-stat-title state-stat-row"),
@@ -309,32 +343,49 @@ def build_state_graphs(state) -> list:
     ]))
 
 
-    state_info_data_list.append(html.H3(children="Age Statistics"))
-    state_info_data_list.append(html.P(children="Note: One or more data groups (age/race) have counts between 1-9 and have been suppressed in accordance with NCHS confidentiality standards."))
     state_info_data_list.append(html.Div([
-            html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-bar',className="state-figure-bar",figure=age_death_bar)], className="bar chart"), 
-            html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-pie',className="state-figure-pie",figure=age_death_pie)], className="pie chart")
-        ], className="row"))
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+        html.H3(children="Age Statistics"),
+        html.P(children="Note: One or more data groups (age/race) have counts between 1-9 and have been suppressed in accordance with NCHS confidentiality standards."),
+        html.Ul([
+            html.Li("Children: 0-14"),
+            html.Li("Teen/Adult: 15-44"),
+            html.Li("Adv Adult: 45-64"),
+            html.Li("Senior: 65 +"),
+        ]),
+        html.P(className="spacer")
+        ])
+    )
 
-    # state_info_data_list.append(html.H3(children="Age Statistics (Grouped)"))
-    state_info_data_list.append(html.Div([
-            html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-bar-grouped',className="state-figure-bar",figure=grouped_age_death_bar)], className="bar chart"), 
-            html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-pie-grouped',className="state-figure-pie",figure=grouped_age_death_pie)], className="pie chart")
-        ], className="row"))
+    state_info_data_list.append(
+        html.Div([
+            html.Div([
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-bar-grouped',className="state-figure-bar",figure=grouped_age_death_bar)], className="bar chart"), 
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-pie-grouped',className="state-figure-pie",figure=grouped_age_death_pie)], className="pie chart")
+            ], className="row"),
+            html.Div([
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-bar',className="state-figure-bar",figure=age_death_bar)], className="bar chart"), 
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-pie',className="state-figure-pie",figure=age_death_pie)], className="pie chart")
+            ], className="row")
+        ])
+    )
 
-    state_info_data_list.append(html.H3(children="Race Statistics"))
     state_info_data_list.append(html.Div([
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+            html.H3(children="Race Statistics"),
+            html.P(className="spacer"),
             html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar',className="state-figure-bar",figure=race_death_bar)], className="bar chart"), 
             html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie',className="state-figure-pie",figure=race_death_pie)], className="pie chart")
-        ], className="row"))
+        ], className="row")
+    )
 
-    # state_info_data_list.append(html.H3(children="Race Statistics (Non-White)"))
     state_info_data_list.append(html.Div([
             html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar-nonwhite',className="state-figure-bar",figure=nonwhite_race_death_bar)], className="bar chart"), 
             html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie-nonwhite',className="state-figure-pie",figure=nonwhite_race_death_pie)], className="pie chart")
-        ], className="row"))
-
-    # state_info_data_list.append(html.Hr())
+        ], className="row")
+    )
 
     return state_info_data_list
 
@@ -399,10 +450,10 @@ for state in state_file.keys():
         if age_demo == "Under 1 year" or age_demo == "1-4 years" or age_demo == "5-14 years":
             child_deaths += data["Age"][age_demo]["total_deaths"]
 
-        if age_demo == "15-24 years" or age_demo == "25-34 years":
+        if age_demo == "15-24 years" or age_demo == "25-34 years" or age_demo == "35-44 years":
             teenadult_deaths += data["Age"][age_demo]["total_deaths"]
 
-        if age_demo == "35-44 years" or age_demo == "45-54 years" or age_demo == "55-64 years":
+        if age_demo == "45-54 years" or age_demo == "55-64 years":
             adult_deaths += data["Age"][age_demo]["total_deaths"]
 
         if age_demo == "65-74 years" or age_demo == "75-54 years" or age_demo == "85 years and over":
@@ -428,14 +479,11 @@ state_table_race_dict_df = pd.DataFrame(state_table_race_dict)
 ##                         ##
 
 app.layout = html.Div(children=[
+    dcc.Location(id='url', refresh=False),
     html.Div(id="container", className="big-container", children=[
-        html.Div(id="header", className="header", children=[
-            html.Div(children=[
+        html.Div(children=[
                 html.H1(children="US COVID demographic statistics - age and race")
-            ],style={
-                "marginBottom": "100px"
-            })
-        ]),
+        ], id="header", className="header"),
         html.Div(children=[
             html.H3(children="About this COVID-19 Dashboard"),
             dcc.Markdown(children='''
@@ -463,35 +511,35 @@ app.layout = html.Div(children=[
 
             ''', id="purpose-div")
         ]),
-        html.Div(children=html_container_list, className="main-container"),
+        html.Div(children=html_container_list),
         # This is where we display main content above graphs
-        html.Div(className="main-container", children=[
+        html.Div(children=[
             # This is where we show the dropdown of states/territories to choose from
             html.Div(children=[
-                html.Div(children="Choose a State/Territory: ", className="dropdown-picker-cell"),
+                html.H4("Choose a state"),
                 html.Div(children=[
-                dcc.Dropdown(
-                    id='drop-down-chooser',
-                    options=[{'label': k, 'value': k} for k in state_file.keys()],
-                    value='California', className="state-dropdown"
-                )
-            ], className="dropdown-picker-cell"),
+                        state_link for state_link in state_name_link_html_list
+                    ], className="state-link-list"
+                ),
 
-            ], className="dropdown-picker-row"),
+            ], className="state-picker-row"),
+            html.P(className="spacer"),
+            html.P(className="spacer"),
             # This is where we return a list of graphs
             html.Div(children=state_info_data_list, className="data-container", id="state-info-list"),
         ]),
 
 
 
-        html.Div(className="main-container", children=[
+        html.Div(children=[
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+
             html.H2("Data Tables for All States"),
 
             html.P("You can sort through each data category for all States and Territories"),
-            html.P(),
-            html.P(),
-
-            html.H2("COVID Cases, Deaths, and Mortality Rates"),
+            html.P(className="spacer"),
+            html.H4("COVID Cases, Deaths, and Mortality Rates"),
             dash_table.DataTable(
                 id='datatable-interactivity',
                 columns=[
@@ -517,9 +565,9 @@ app.layout = html.Div(children=[
                     }
                 ]
             ),
-            html.P(),
-            html.P(),
-            html.H2("COVID Deaths by Age Group"),
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+            html.H4("COVID Deaths by Age Group"),
             dash_table.DataTable(
                 id='datatable-interactivity-age',
                 columns=[
@@ -546,8 +594,8 @@ app.layout = html.Div(children=[
                 ]
             ),
             html.P("Note: One or more age groups have counts between 1-9 and have been suppressed in accordance with NCHS confidentiality standards -they will appear as zero ('0')."),
-            html.P(),
-            html.H2("COVID Deaths by Racial Group"),
+            html.P(className="spacer"),
+            html.H4("COVID Deaths by Racial Group"),
             dash_table.DataTable(
                 id='datatable-interactivity-race',
                 columns=[
@@ -594,10 +642,10 @@ app.layout = html.Div(children=[
             html.Div(children=[
                 html.P(children="Age Groups are defined as follows:"), 
                 html.P(children=[
-                    html.Li(children=["Children: 0-14"]),
-                    html.Li(children=["Teen/Adult: 15-24"]),
-                    html.Li(children=["Adult: 25-64"]),
-                    html.Li(children=["Senior: 65-85+"]),
+                    html.Li("Children: 0-14"),
+                    html.Li("Teen/Adult: 15-44"),
+                    html.Li("Adv Adult: 45-64"),
+                    html.Li("Senior: 65 +"),
                     ])
             ]),
 
@@ -623,15 +671,25 @@ app.layout = html.Div(children=[
         ]),
         html.Div(id="footer", className="footer", style={'height': "200px"})
         ]) # End "container" Div
-]) # End app layout Div
+], className="main-container") # End app layout Div
 @app.callback(
-    Output('state-info-list', 'children'),
-    Input('drop-down-chooser', 'value'))
-def update_figure(value):
-    state_list = build_state_graphs(value)
-    return state_list
+        Output('state-info-list', 'children'),
+                Input('url', 'pathname')
+                # Input('drop-down-chooser', 'value')
+    )
+def update_figure(pathname: None):
+    value = dropdown_default_state
+    if pathname:
+        urlpath_state_name = pathname.strip("/").replace("%20", " ")
+        if urlpath_state_name in state_name_list:
+            value = urlpath_state_name
+
+    if pathname == "":
+        value = dropdown_default_state
+    state_figure_list = build_state_graphs(value)
+    return state_figure_list
 
 
 if __name__ == '__main__':
-    # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1'))
-    app.run_server(debug=False)
+    app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1'))
+    # app.run_server(debug=False)

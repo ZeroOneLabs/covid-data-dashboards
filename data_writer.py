@@ -38,14 +38,6 @@ def write_data():
     demo_sex = [ "Male", "Female" ]
     demo_races = { "Black": "non_hispanic_black_african_american", "White": "non_hispanic_white", "Latino": "hispanic_latino_total", "Asian": "non_hispanic_asian_pacific_islander", "Multiracial": "non_hispanic_more_than_one_race", "Indian_Alaskan": "non_hispanic_american_indian_alaska_native", "Islander": "nh_nhopi" }
 
-                                        # non_hispanic_white
-                                        # non_hispanic_black_african_american
-                                        # non_hispanic_american_indian_alaska_native
-                                        # non_hispanic_asian_pacific_islander
-                                        # nh_nhopi
-                                        # non_hispanic_more_than_one_race
-                                        # hispanic_latino_total
-
     parent_dict = { }
     for st, state in state_age_info_df["states"].items():
         state_name = state["long"]
