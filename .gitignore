@@ -7,9 +7,6 @@ __pycache__
 data/CDC/*
 data/NYT/*
 data/ZeroOneLabs/*
-data/NYT/us-counties-latest.csv
-data/NYT/us-latest.csv
-data/NYT/us-states-latest.csv
-data/NYT/us-counties-latest.csv
-data/NYT/us-latest.csv
-data/NYT/us-states-latest.csv
+data/NYT/*
+data/NYT/*
+data/NYT/*
