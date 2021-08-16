@@ -17,6 +17,10 @@ import plotly.express as px
 import data_writer as dw
 import data_downloader as dd
 
+import dashboard_utils as du
+import data_sections
+import shared_data
+
 today = datetime.today()
 today_str = today.strftime("%Y-%m-%d")
 
@@ -31,13 +35,12 @@ app = dash.Dash(__name__,external_stylesheets=[dash_theme])
 server = app.server
 app.title="Zero One Labs - US COVID Demographic Dashboard"
 
-pie_legend_font_config = dict(family="Courier", size=24)
-pie_graph_margins = dict(t=10, b=10, l=10, r=10)
-bar_legend_font_config = dict(family="Helvetica", size=18, color="Black")
-bar_graph_margins = dict(r=10)
 
+# TODO: Removed "default_state" and only include state data when 
+# a user clicks on a state name
 default_state = "California"
 
+## Load file data
 try:
     dd.download_nyt_data()
     us_totals_df = pd.read_csv("data/NYT/us-latest.csv")
@@ -51,7 +54,6 @@ for drop_state in ["Northern Mariana Islands", "Virgin Islands", "Puerto Rico", 
             states_totals_df[states_totals_df['state'] == drop_state].index
         )
 
-
 try:
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
         state_file = json.load(f)
@@ -59,6 +61,10 @@ except:
     dw.write_data()
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
         state_file = json.load(f)
+
+with open("data/state_info.json", "r") as jinfo:
+    population_info = json.load(jinfo)
+
 
 def get_national_data():
     pass
@@ -74,6 +80,10 @@ last_updated_age = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Sex_and_Age.jso
 
 #TODO: Add total death numbers for each age group and race
 #TODO: Add total death percentages for each age group and race
+#TODO: Write function to create bar and pie graphs to reduce code duplication
+#TODO: Write function to create "National Statistics", "State Statistics" (semi-done), and "About" html element lists
+    #TODO: Put each major function in their own .py file to reduce clutter?
+
 
 national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths = 0, 0, 0, 0
 for state, data in state_file.items():
@@ -106,8 +116,8 @@ us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / us_totals_death
 us_total_pct_age_advadlt = round( ( national_adult_deaths / us_totals_death ) * 100)
 us_total_pct_age_senior = round( ( national_senior_deaths / us_totals_death ) * 100)
 
-print(national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths)
-print(us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior)
+# print(national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths)
+# print(us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior)
 
 national_total_pct_age_dict = [
         { "Age Group": "0-14", "Percent of COVID deaths (Nationally)": us_total_pct_age_child_deaths },
@@ -115,19 +125,29 @@ national_total_pct_age_dict = [
         { "Age Group": "45-64", "Percent of COVID deaths (Nationally)": us_total_pct_age_advadlt },
         { "Age Group": "65+", "Percent of COVID deaths (Nationally)": us_total_pct_age_senior },
 ]
-national_total_pct_age_fig = px.bar(
-    national_total_pct_age_dict, 
-    # x="age_group", y="death_pct", 
-    y="Age Group", x="Percent of COVID deaths (Nationally)", 
-    color="Age Group", 
-    # pattern_shape="age_group", 
-    # pattern_shape_sequence=[".", "x", "+"] 
-    )
-national_total_pct_age_fig.update_traces( texttemplate='%{x:,}', textposition='auto' )
+
+national_total_pct_age_table_dict = {
+        "row0": { "values": [ "Age Range", "Total Deaths", "% of all Deaths" ], "classname": "table-data-row" },
+        "row1": { "values": [ "0-14", f"{int(national_child_deaths):,}", f"{us_total_pct_age_child_deaths}%" ], "classname": "table-data-row" },
+        "row2": { "values": [ "15-44", f"{int(national_teenadult_deaths):,}", f"{us_total_pct_age_teenadlt}%"  ], "classname": "table-data-row" },
+        "row3": { "values": [ "45-64", f"{int(national_adult_deaths):,}", f"{us_total_pct_age_advadlt}%"  ], "classname": "table-data-row" },
+        "row4": { "values": [ "65+", f"{int(national_senior_deaths):,}", f"{us_total_pct_age_senior}%"  ], "classname": "table-data-row" }
+    }
 
 
-with open("data/state_info.json", "r") as jinfo:
-    population_info = json.load(jinfo)
+
+def create_nat_age_death_pct_pie() -> px.pie:
+    national_total_pct_age_fig = px.pie(
+        national_total_pct_age_dict, 
+        values='Percent of COVID deaths (Nationally)', names='Age Group', 
+        color="Age Group", 
+        )
+    national_total_pct_age_fig.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
+    national_total_pct_age_fig.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
+
+    return national_total_pct_age_fig
+
+
 
 us_population = population_info['national']['US']['pop']
 
@@ -150,238 +170,7 @@ for state in state_name_list:
     )
 
 
-def build_state_graphs(state) -> list:
-    state_info_data_list = []
-    state_id_str = state.replace(" ", "-").lower()
-    data = state_file[state]
 
-    ## Age demo statistics
-    age_demo_death_dict = { "Age Range": [], "COVID Deaths": [] }
-    for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
-        if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
-            continue
-        age_demo_death_dict["Age Range"].append(age_demo)
-        age_demo_death_dict["COVID Deaths"].append(data["Age"][age_demo]["total_deaths"])
-
-
-    age_demo_death_pct_dict = { "Age Range": [], "Percent of Deaths": [] }
-    for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
-        if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
-            continue
-        age_demo_death_pct_dict["Age Range"].append(age_demo)
-        age_demo_death_pct_dict["Percent of Deaths"].append(data["Age"][age_demo]["pct_covid_deaths"])
-
-
-    ## Grouped age statistics for percentage of COVID deaths - e.g. "Child (0-14), Teen/Adult (15-44), Adult (45-64), Senior (65-85+)"
-    grouped_age_demo_death_pct_dict = { "Age Group": [ "Child", "Teen/Adult", "Adv Adult", "Senior" ], "Percent of Deaths": [] }
-    # Define variables
-    child_death_pct, teenadult_death_pct, adult_death_pct, senior_death_pct = 0.0, 0.0, 0.0, 0.0
-
-    for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
-        if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
-            continue
-
-        if age_demo == "Under 1 year" or age_demo == "1-4 years" or age_demo == "5-14 years":
-            child_death_pct += data["Age"][age_demo]["pct_covid_deaths"]
-
-        if age_demo == "15-24 years" or age_demo == "25-34 years" or age_demo == "35-44 years":
-            teenadult_death_pct += data["Age"][age_demo]["pct_covid_deaths"]
-
-        if age_demo == "45-54 years" or age_demo == "55-64 years":
-            adult_death_pct += data["Age"][age_demo]["pct_covid_deaths"]
-
-        if age_demo == "65-74 years" or age_demo == "75-54 years" or age_demo == "85 years and over":
-            senior_death_pct += data["Age"][age_demo]["pct_covid_deaths"]
-
-    # Now add each category and concatenated percent for each group to dict
-    grouped_age_demo_death_pct_dict["Percent of Deaths"].append(child_death_pct)
-    grouped_age_demo_death_pct_dict["Percent of Deaths"].append(teenadult_death_pct)
-    grouped_age_demo_death_pct_dict["Percent of Deaths"].append(adult_death_pct)
-    grouped_age_demo_death_pct_dict["Percent of Deaths"].append(senior_death_pct)
-
-
-    ## Grouped age statistics for total COVID deaths - e.g. "Child (0-14), Teen/Adult (15-44), Adv Adult (45-64), Senior (65-85+)"
-    grouped_age_demo_deaths_dict = { "Age Group": [ "Child", "Teen/Adult", "Adv Adult", "Senior" ], "COVID Deaths": [] }
-
-    # Define variables
-    child_deaths, teenadult_deaths, adult_deaths, senior_deaths = 0.0, 0.0, 0.0, 0.0
-
-    for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
-        if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
-            continue
-
-        if age_demo == "Under 1 year" or age_demo == "1-4 years" or age_demo == "5-14 years":
-            child_deaths += data["Age"][age_demo]["total_deaths"]
-
-        if age_demo == "15-24 years" or age_demo == "25-34 years" or age_demo == "35-44 years":
-            teenadult_deaths += data["Age"][age_demo]["total_deaths"]
-
-        if age_demo == "45-54 years" or age_demo == "55-64 years":
-            adult_deaths += data["Age"][age_demo]["total_deaths"]
-
-        if age_demo == "65-74 years" or age_demo == "75-54 years" or age_demo == "85 years and over":
-            senior_deaths += data["Age"][age_demo]["total_deaths"]
-
-    # Now add each concatenated percent variable in the order of named age groups.
-    grouped_age_demo_deaths_dict["COVID Deaths"].append(child_deaths)
-    grouped_age_demo_deaths_dict["COVID Deaths"].append(teenadult_deaths)
-    grouped_age_demo_deaths_dict["COVID Deaths"].append(adult_deaths)
-    grouped_age_demo_deaths_dict["COVID Deaths"].append(senior_deaths)
-
-    ## Create dataframe for bar graphs
-    grouped_age_death_bar_df = pd.DataFrame(grouped_age_demo_deaths_dict, columns=["Age Group", "COVID Deaths"])
-
-
-    # previous color settings: , color_continuous_scale="Geyser", color="COVID Deaths"
-    age_death_bar_df = pd.DataFrame(age_demo_death_dict, columns=["Age Range", "COVID Deaths"])
-    age_death_bar = px.bar(age_death_bar_df, x="COVID Deaths", y="Age Range", orientation='h', title="Deaths by Age")
-    age_death_bar.update_yaxes(title=None)
-    age_death_bar.update_xaxes(title=None)
-    age_death_bar.update_layout( font=bar_legend_font_config, margin=bar_graph_margins )
-    age_death_bar.update_traces( texttemplate='%{x:,}', textposition='auto' )
-
-    # previous color settings: color_continuous_scale=bar_color_scale, color="COVID Deaths"
-    grouped_age_death_bar = px.bar(grouped_age_death_bar_df, x="COVID Deaths", y="Age Group", orientation='h', barmode="group", title="Deaths by Age (Grouped)")
-    grouped_age_death_bar.update_yaxes( title=None )
-    grouped_age_death_bar.update_xaxes( title=None )
-    grouped_age_death_bar.update_layout( font=bar_legend_font_config, margin=bar_graph_margins )
-    grouped_age_death_bar.update_traces( texttemplate='%{x:,}', textposition='auto' )
-
-    ## Create pie graphs
-    # previous color settings: color_discrete_sequence=["red", "green", "blue"]
-    age_death_pie = px.pie( age_demo_death_pct_dict, values='Percent of Deaths', names='Age Range', title='Percent of COVID deaths' )
-    age_death_pie.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
-    age_death_pie.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
-
-    # previous color settings: color_discrete_sequence=px.colors.diverging.Geyser_r
-    grouped_age_death_pie = px.pie( grouped_age_demo_death_pct_dict, values='Percent of Deaths', names='Age Group', title='Percent of COVID deaths (Grouped)' )
-    grouped_age_death_pie.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
-    grouped_age_death_pie.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
-
-
-    ## Race demo statistics
-    # Create dictionary for deaths per race
-    race_demo_death_dict = { "Race Group": [], "COVID Deaths": [] }
-    for race_demo in data["Race"]:
-        race_demo_death_dict["Race Group"].append(race_demo)
-        race_demo_death_dict["COVID Deaths"].append(data["Race"][race_demo]["death"])
-
-    # Create dictionary for percentage of race deaths
-    race_demo_death_pct_dict = { "Race Group": [], "Percent of Deaths": [] }
-    for race_demo in data["Race"]:
-        race_demo_death_pct_dict["Race Group"].append(race_demo)
-        race_demo_death_pct_dict["Percent of Deaths"].append(data["Race"][race_demo]["pct_covid_deaths"])
-
-
-
-    # Create dictionary for percentage of race deaths, minus White group
-    nonwhite_race_demo_death_pct_dict = { "Race Group": [], "Percent of Deaths": [] }
-    for race_demo in data["Race"]:
-        if race_demo == "White":
-            continue
-        nonwhite_race_demo_death_pct_dict["Race Group"].append(race_demo)
-        nonwhite_race_demo_death_pct_dict["Percent of Deaths"].append(data["Race"][race_demo]["pct_covid_deaths"])
-
-
-    ## Create dataframes for bar graphs
-    race_death_bar_df = pd.DataFrame(race_demo_death_dict, columns=["Race Group", "COVID Deaths"])
-    ## Create bar graphs
-    race_death_bar = px.bar(race_death_bar_df, x="COVID Deaths", y="Race Group", orientation='h', barmode="group", title="All Races")
-    race_death_bar.update_layout( font=pie_legend_font_config)
-    race_death_bar.update_yaxes(title=None)
-    race_death_bar.update_xaxes(title=None)
-    race_death_bar.update_layout( font=bar_legend_font_config, margin=bar_graph_margins )
-    race_death_bar.update_traces( texttemplate='%{x:,}', textposition='auto' )
-
-
-    ## Create pie graph
-    race_death_pie = fig = px.pie(race_demo_death_pct_dict, values='Percent of Deaths', names='Race Group', title=f'{state} - Race Demographics - % COVID deaths', color_discrete_sequence=px.colors.diverging.Tealrose_r)
-    race_death_pie.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
-    race_death_pie.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
-
-
-    state_cases = states_totals_df.loc[states_totals_df["state"] == state]["cases"].values[0]
-    state_death = states_totals_df.loc[states_totals_df["state"] == state]["deaths"].values[0]
-    state_mrate = round((state_death / state_cases) * 100, 3)
-    state_mrate_noseniors = round(((state_death - senior_deaths)/ state_cases) * 100, 3)
-
-
-    state_info_data_list.append(
-        html.Div([
-
-            html.H2(state, className="main-header"),
-
-            html.P(className="spacer"),
-            html.P(className="spacer"),
-        
-            html.Table([
-                html.Tbody([
-                    html.Tr([
-                        html.Td("Cases", className="state-stat-title"),
-                        html.Td(f"{state_cases:,}", className="state-stat-num")
-                    ]),
-                    html.Tr([
-                        html.Td("Deaths", className="state-stat-title"),
-                        html.Td(f"{state_death:,}", className="state-stat-num")
-                    ])
-                ])
-            ], className="stat-table table table-responsive"),
-
-            html.P(className="spacer"),
-
-            html.H5("Mortality Rates"),
-
-                html.Table([
-                    html.Tbody([
-                        html.Tr([
-                            html.Td(f"Average mortality rate for {state}", className="state-stat-title"),
-                            html.Td(f"{state_mrate:,}%", className="state-stat-num")
-                        ]),
-                        html.Tr([
-                            html.Td(f"{state} Seniors Removed **", className="state-stat-title"),
-                            html.Td(f"{state_mrate_noseniors:,}%", className="state-stat-num")
-                        ])
-                    ])
-                ], className="stat-table table table-responsive"),
-
-            html.P(className="spacer"),
-            html.P(className="spacer"),
-
-            html.H3("Age Statistics"),
-            html.P("Note: One or more data groups (age/race) have counts between 1-9 and have been suppressed in accordance with NCHS confidentiality standards."),
-            html.Ul([
-                html.Li("Children: 0-14"),
-                html.Li("Teen/Adult: 15-44"),
-                html.Li("Adv Adult: 45-64"),
-                html.Li("Senior: 65 +"),
-            ]),
-
-            html.P(className="spacer"),
-
-            html.Div([
-                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-bar-grouped',className="state-figure-bar",figure=age_death_bar)], className="bar chart"), 
-                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-age-pie-grouped',className="state-figure-pie",figure=grouped_age_death_pie)], className="pie chart")
-            ], className="row"),
-
-            html.P(className="spacer"),
-            html.P(className="spacer"),
-            html.H3("Race Statistics"),
-            html.P(className="spacer"),
-
-
-            html.Div([
-                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar',className="state-figure-bar",figure=race_death_bar)], className="bar chart"), 
-                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie',className="state-figure-pie",figure=race_death_pie)], className="pie chart")
-            ], className="row")
-        ])    
-    )
-
-
-    return state_info_data_list
 
 
 ## Build table of all state data
@@ -520,18 +309,6 @@ html_container_list.append(
         html.H4("National Statistics"),
         html.P(className="spacer"),
 
-        html.Table([
-            html.Tbody([
-                html.Tr([
-                    html.Td("Cases"),
-                    html.Td(f" {us_totals_cases:,}", className="nat-stat-num"),
-                ]),
-                html.Tr([
-                    html.Td("Deaths"),
-                    html.Td(f" {us_totals_death:,}", className="nat-stat-num"),
-                ])
-            ])
-        ], className="stat-table table table-responsive"),
 
         html.P(f"{us_percent_infected}% percent of US population has been recorded as infected with COVID."),
         html.P(f"{us_percent_killed}% percent of US population has been recorded as a COVID death."),
@@ -555,7 +332,15 @@ html_container_list.append(
         #national_total_pct_age_fig
         #    #         html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar-nonwhite',className="state-figure-bar",figure=nonwhite_race_death_bar)], className="bar chart"), 
 
-        html.Div([dcc.Graph(figure=national_total_pct_age_fig, className="nat-figure-bar")], className="bar chart"),
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+
+        html.H4("Age Statistics"),
+
+        html.P("Percent of COVID deaths by age group"),
+
+        # Haha! Fuck YOU! I created a method to create tables programmatically!
+        du.create_html_table(national_total_pct_age_table_dict, tableClassname="stat-table table table-responsive"),
 
         dcc.Markdown(
             f"""
@@ -820,7 +605,7 @@ def update_figure(pathname: None):
 
     if pathname == "":
         value = default_state
-    state_figure_list = build_state_graphs(value)
+    state_figure_list = data_sections.build_state_graphs(state_file, value)
     return state_figure_list
 
 
