@@ -32,6 +32,21 @@ strong {
 .main-domsubheader {
     font-size: 1em;
 }
+div.header-links {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    vertical-align: middle !important;
+    margin-top: 20px;
+    border-top: thin solid grey;
+    border-bottom: thin solid grey;
+    width: 60%;
+}
+div.header-links a {
+    margin-top: 10px;
+    padding: 0 10px;
+}
+
 
 
 #state-info-list {
@@ -41,8 +56,10 @@ strong {
     content: "";
     display: flex;
     clear: both;
-    margin-left: -15%;
-    margin-right: -16%;
+    margin-left: -12%;
+    margin-right: -13%;
+    /* margin-left: -15%;
+    margin-right: -16%; */
 }
 
 .bar { 
@@ -91,7 +108,11 @@ hr {
 .footer {
     display: block;
     margin-top: 100px;
-    height: 200px;
+    background-color: rgb(237, 237, 237);
+    margin-left: -20px;
+    padding-left: 20px;
+    margin-right: -20px;
+    padding-right: 20px;
 }
 .footer-spacer {
     display: block;
@@ -111,8 +132,8 @@ span.column-header-name {
 
 
 .stat-table  {
-    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    font-size: 2.5em;
+    font-family: Tahoma, Verdana, Goergia;
+    font-size: 2em;
 }
 
 .stat-table th {
@@ -166,9 +187,9 @@ p.spacer {
     text-decoration: underline;
 }
 
-#purpose-div {
+/* #purpose-div {
     display: none;
-}
+} */
 
 .state-picker-row {
     /* margin: 10px 0 30px 10px; */
@@ -184,11 +205,18 @@ p.spacer {
 }
 
 .state_link {
+    font-size: 1.5em;
     margin: 5px 10px;
     padding: 10px 10px;
     border: thin solid grey;
     background-color:rgb(255, 250, 250);
     display: inline-block;
+}
+
+.state-letter-item {
+    font-family:'Courier New', Courier, monospace;
+    font-size: 1.25em;
+    font-weight: 600;
 }
 
 .not-allowed {

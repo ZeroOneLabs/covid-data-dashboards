@@ -1,3 +1,13 @@
+import data_downloader as dd
+import pandas as pd
+
+try:
+    dd.download_nyt_data()
+    us_totals_df = pd.read_csv("data/NYT/us-latest.csv")
+    states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
+except Exception as e:
+    print(e)
+
 
 # Variables
 pie_legend_font_config = dict(family="Courier", size=24)

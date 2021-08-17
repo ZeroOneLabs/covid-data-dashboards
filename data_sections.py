@@ -3,18 +3,191 @@ import plotly.express as px
 
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_table
 
-import shared_data
+import shared_data as sd
+import dashboard_utils as du
 
-def get_covid_mortality_info() -> html.Div:
-    """Returns data section containing all Dash HTML elements for the "How deadly is COVID-19?" section.
+def get_national_stats(
+        us_percent_infected, 
+        us_percent_killed, 
+        us_totals_mrate, 
+        us_totals_mrate_noseniors,
+        national_total_pct_age_table_dict,
+        us_totals_cases, us_totals_death) -> list:
 
-    Returns:
-        html.Div
-    """
+    retval = [
+
+        html.H2("National Statistics", className="main-header"),
+
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+
+        html.Table([
+            html.Tbody([
+                html.Tr([
+                    html.Td("Total Cases"),
+                    html.Td(f"{us_totals_cases:,}", className="nat-stat-num")
+                ]),
+                html.Tr([
+                    html.Td("Total Deaths"),
+                    html.Td(f"{us_totals_death:,}", className="nat-stat-num")
+                ])
+            ])
+        ], className="stat-table table table-responsive"),
+        html.P(className="spacer"),
+
+        html.Table([
+            html.Tbody([
+                html.Tr([
+                    html.Td("US Population % infected"),
+                    html.Td(f"{us_percent_infected:,}%", className="nat-stat-num")
+                ]),
+                html.Tr([
+                    html.Td("US Population % deaths"),
+                    html.Td(f"{us_percent_killed:,}%", className="nat-stat-num")
+                ])
+            ])
+        ], className="stat-table table table-responsive"),
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+
+        html.H4("Mortality Rates", className="main-subheader"),
+        # html.P("Percent of COVID deaths by age group", className="main-domsubheader"),
+        html.P(className="spacer"),
+
+        html.Table([
+            html.Tbody([
+                html.Tr([
+                    html.Td("Average Mortality Rate"),
+                    html.Td(f"{us_totals_mrate:,}%", className="nat-stat-num")
+                ]),
+                html.Tr([
+                    html.Td("Seniors removed **"),
+                    html.Td(f"{us_totals_mrate_noseniors:,}%", className="nat-stat-num")
+                ])
+            ])
+        ], className="stat-table table table-responsive"),
+        #national_total_pct_age_fig
+        #    #         html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar-nonwhite',className="state-figure-bar",figure=nonwhite_race_death_bar)], className="bar chart"), 
+
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+
+        html.H4("Age Statistics", className="main-subheader"),
+        html.P("Percent of COVID deaths by age group", className="main-domsubheader"),
+        html.P(className="spacer"),
+
+        # Haha! Fuck YOU! I created a method to create tables programmatically!
+        du.create_html_table(national_total_pct_age_table_dict, tableClassname="stat-table table table-responsive"),
+
+        dcc.Markdown(
+            f"""
+            Regarding the average State, 'advanced adults' (45-64 years) and Seniors (65+) make up about 75% of COVID deaths. Inversely, **the average survival rate for COVID is {100 - us_totals_mrate}%,** and the average survival rate for people under 64 years of age is {100 - us_totals_mrate_noseniors}%.
+            """),
+
+        html.P("** Senior (65 yrs+) deaths & cases removed from pool of calculated data, leaving ages from 0 to 64."),
+    ]
+    return retval
+
+def get_data_tables(state_table_dict_df, state_table_age_dict_df, state_table_race_dict_df) -> list:
+    retval = [
+
+        html.H2("Data Tables for All States"),
+
+        html.P("You can sort through each data category for all States. Some Territories have been excluded."),
+        html.P(className="spacer"),
+
+        html.H4("Cases, Deaths, and Mortality Rates by State"),
+        dash_table.DataTable(
+            id='datatable-interactivity',
+            columns=[
+                {"name": i, "id": i} for i in state_table_dict_df.columns
+            ],
+            data=state_table_dict_df.to_dict('records'),
+            editable=False,
+            filter_action="native",
+            sort_action="native",
+            sort_mode="single",
+            column_selectable=False,
+            row_selectable=False,
+            row_deletable=False,
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current= 0,
+            page_size= 11,
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(248, 248, 248)'
+                }
+            ]
+        ),
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+        html.H4("Deaths by Age Range"),
+        dash_table.DataTable(
+            id='datatable-interactivity-age',
+            columns=[
+                {"name": i, "id": i} for i in state_table_age_dict_df.columns
+            ],
+            data=state_table_age_dict_df.to_dict('records'),
+            editable=False,
+            filter_action="native",
+            sort_action="native",
+            sort_mode="single",
+            column_selectable=False,
+            row_selectable=False,
+            row_deletable=False,
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current= 0,
+            page_size= 11,
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(248, 248, 248)'
+                }
+            ]
+        ),
 
 
-    retval = html.Div([
+        html.P("Note: One or more age groups have counts between 1-9 and have been suppressed in accordance with NCHS confidentiality standards -they will appear as zero ('0')."),
+        html.P(className="spacer"),
+        html.H4("Deaths by Racial Group"),
+        dash_table.DataTable(
+            id='datatable-interactivity-race',
+            columns=[
+                {"name": i, "id": i} for i in state_table_race_dict_df.columns
+            ],
+            data=state_table_race_dict_df.to_dict('records'),
+            editable=False,
+            filter_action="native",
+            sort_action="native",
+            sort_mode="single",
+            column_selectable=False,
+            row_selectable=False,
+            row_deletable=False,
+            selected_columns=[],
+            selected_rows=[],
+            page_action="native",
+            page_current= 0,
+            page_size= 11,
+            style_data_conditional=[
+                {
+                    'if': {'row_index': 'odd'},
+                    'backgroundColor': 'rgb(248, 248, 248)'
+                }
+            ]
+        )
+
+    ]
+    return retval
+
+def get_about_covid_disease() -> list:
+    retval = [
 
         html.H2("How deadly is COVID-19?"),
 
@@ -62,7 +235,115 @@ def get_covid_mortality_info() -> html.Div:
         html.P(className="spacer"),
         html.P(className="spacer")
 
-    ])
+    ]
+
+    return retval
+
+def get_about_covid_stats() -> list:
+    retval = [
+        html.H3("About this COVID-19 Dashboard", className="main-subheader"),
+        html.P(className="spacer"),
+
+        dcc.Markdown('''
+        This dashboard was created out of necessity, when I asked myself the question "What age group makes up the majority of COVID deaths for my state?" and "most dashboards list cases with 'rolling averages' or 'last 7 days', but no deaths? How lethal is this disease if I can't measure the cases against the deaths?" 
+        '''),
+
+        dcc.Markdown('''
+        This lead me down a path of trying to find a complete set of data that I could download for my state, which then lead me to find more data for each state... which then lead me down the path to finding COVID data about age ranges and race groups.
+
+        The ultimate purpose of this dashboard is to help people like you empower yourselves with simple, yet effective knowledge that comes from the New York Times and the CDC. I want to help educate people on generally how deadly the COVID-19 disease in the United States by pulling official data and calculating those numbers to get a mortality rate – or rather the relative chances one would have if they contracted COVID in a certain geographical area in the United States.
+
+        &nbsp;
+
+        If you are viewing this data dashboard on a tablet or mobile device, I would advise you to turn your device into "landscape mode" in order to see the graphs and text a little better, or to view this on a desktop web browser.
+        ''', id="purpose-div"),
+
+    ]
+    return retval
+
+def get_covid_mortality_info() -> list:
+    """Returns data section containing all Dash HTML elements for the "How deadly is COVID-19?" section.
+
+    Returns:
+        html.Div
+    """
+
+
+    retval = [
+
+        html.H2("How deadly is COVID-19?"),
+
+        html.P("To begin to understand the threat an infectious disease like COVID-19 presents to the greater US population (and to each State), we must first declare and understand some underlying language, which is used to define some terms."),
+
+        html.P(className="spacer"),
+
+        html.H5("COVID 'Case'"),
+
+        html.P("A COVID 'Case' is a recorded event where a person submits biological samples of cells from their respiratory system or blood to test for 1 of 2 types of tests."),
+
+        html.H6("Antigen Tests"),
+        html.P("Antigen tests basically look for a protein, which is typically found in a novel coronavirus (e.g. COVID-19). These tests are generally less expensive, but can also less reliable in some cases (e.g. if the testing person is not at the peak infection stage)."),
+
+
+        html.H6("Antibody Tests"),
+        html.P("Antibody tests basically look for antibodies that are developed from your body to defend against diseases similar to COVID-19. This means that, if your body has recently built a defense against an attack from a novel coronavirus (MERS, SARS CoV, SARS CoV-2 [AKA COVID-19]), or a disease similar to a coronavirus, like the Flu."),
+        html.P(className="spacer"),
+
+
+        html.H5("COVID 'Death'"),
+        
+        html.P("A COVID 'Death' is a recorded event where a person dies due to the direct effects of COVID-19 or if they have positive traces of COVID-19 in their body near, or at the time, of death."),
+        html.P(className="spacer"),
+
+
+        html.H5("Mortality Rate"),
+
+        html.P("The lethality of infectious diseases are defined by the rate at which a disease kills a population, which is often referred to as the disease's 'mortality rate'. After enough data is collected, these mortality rates are calculated in order to assess the threat level the disease presents to, either the immediate population from where the disease emerged, or as large as a global scale if the disease's transmission rate and vector."),
+
+
+        dcc.Markdown(
+            """
+            Reference links
+
+            * [List of human disease case fatality rates](https://en.wikipedia.org/wiki/List_of_human_disease_case_fatality_rates)
+            * [CDC Health Statistics](https://www.cdc.gov/nchs/fastats/infectious-disease.htm)
+
+            """),
+
+        html.P(className="spacer"),
+
+        html.P("This application has pulled COVID-19 data from the CDC and New York Times (see the 'Notes' section for source links) – which contains total COVID cases and death numbers. From here we can then calculate the averate national mortality rate for COVID, based on a simple percentage formula."),
+
+        html.P(className="spacer"),
+        html.P(className="spacer")
+
+    ]
+    return retval
+
+def get_state_picker(state_name_link_html_list) -> list:
+    retval = [
+        html.Div([
+
+            html.H2("View individual State data"),
+
+            html.P("Below is a list of links of States in the US."),
+
+            html.P("Click or tap on a US State to render information charts for that state. By default, this dashboard loads data for California, as that state has some of the highest rates of COVID deaths."),
+
+            html.P("Note: You can control-click and copy a link to a State to share with your family and friends. Sharing this dashboard will also promote more sharing of knowledge. As I like to say: \"The more we know, the more we grow!\""),
+
+            html.P(className="spacer"),
+
+            html.H5("Choose a state"),
+
+
+            html.Div([
+                    state_link for state_link in state_name_link_html_list
+                ], className="state-link-list"
+            ),
+
+        ], className="state-picker-row")
+    ]
     return retval
 
 
@@ -70,7 +351,7 @@ def build_state_graphs(json_state_file, state) -> list:
     state_info_data_list = []
     state_id_str = state.replace(" ", "-").lower()
     data = json_state_file[state]
-
+# us_totals_cases, us_totals_death
     bar_legend_font_config = dict(family="Helvetica", size=18, color="Black")
 
 
@@ -160,26 +441,26 @@ def build_state_graphs(json_state_file, state) -> list:
     age_death_bar = px.bar(age_death_bar_df, x="COVID Deaths", y="Age Range", orientation='h', title="Deaths by Age")
     age_death_bar.update_yaxes(title=None)
     age_death_bar.update_xaxes(title=None)
-    age_death_bar.update_layout( font=bar_legend_font_config, margin=bar_graph_margins )
+    age_death_bar.update_layout( font=bar_legend_font_config, margin=sd.bar_graph_margins )
     age_death_bar.update_traces( texttemplate='%{x:,}', textposition='auto' )
 
     # previous color settings: color_continuous_scale=bar_color_scale, color="COVID Deaths"
     grouped_age_death_bar = px.bar(grouped_age_death_bar_df, x="COVID Deaths", y="Age Group", orientation='h', barmode="group", title="Deaths by Age (Grouped)")
     grouped_age_death_bar.update_yaxes( title=None )
     grouped_age_death_bar.update_xaxes( title=None )
-    grouped_age_death_bar.update_layout( font=bar_legend_font_config, margin=bar_graph_margins )
+    grouped_age_death_bar.update_layout( font=bar_legend_font_config, margin=sd.bar_graph_margins )
     grouped_age_death_bar.update_traces( texttemplate='%{x:,}', textposition='auto' )
 
     ## Create pie graphs
     # previous color settings: color_discrete_sequence=["red", "green", "blue"]
     age_death_pie = px.pie( age_demo_death_pct_dict, values='Percent of Deaths', names='Age Range', title='Percent of COVID deaths' )
     age_death_pie.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
-    age_death_pie.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
+    age_death_pie.update_layout( font=sd.pie_legend_font_config, title=None, margin=sd.pie_graph_margins )
 
     # previous color settings: color_discrete_sequence=px.colors.diverging.Geyser_r
     grouped_age_death_pie = px.pie( grouped_age_demo_death_pct_dict, values='Percent of Deaths', names='Age Group', title='Percent of COVID deaths (Grouped)' )
     grouped_age_death_pie.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
-    grouped_age_death_pie.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
+    grouped_age_death_pie.update_layout( font=sd.pie_legend_font_config, title=None, margin=sd.pie_graph_margins )
 
 
     ## Race demo statistics
@@ -210,21 +491,21 @@ def build_state_graphs(json_state_file, state) -> list:
     race_death_bar_df = pd.DataFrame(race_demo_death_dict, columns=["Race Group", "COVID Deaths"])
     ## Create bar graphs
     race_death_bar = px.bar(race_death_bar_df, x="COVID Deaths", y="Race Group", orientation='h', barmode="group", title="All Races")
-    race_death_bar.update_layout( font=pie_legend_font_config)
+    race_death_bar.update_layout( font=sd.pie_legend_font_config)
     race_death_bar.update_yaxes(title=None)
     race_death_bar.update_xaxes(title=None)
-    race_death_bar.update_layout( font=bar_legend_font_config, margin=bar_graph_margins )
+    race_death_bar.update_layout( font=bar_legend_font_config, margin=sd.bar_graph_margins )
     race_death_bar.update_traces( texttemplate='%{x:,}', textposition='auto' )
 
 
     ## Create pie graph
     race_death_pie = fig = px.pie(race_demo_death_pct_dict, values='Percent of Deaths', names='Race Group', title=f'{state} - Race Demographics - % COVID deaths', color_discrete_sequence=px.colors.diverging.Tealrose_r)
     race_death_pie.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
-    race_death_pie.update_layout( font=pie_legend_font_config, title=None, margin=pie_graph_margins )
+    race_death_pie.update_layout( font=sd.pie_legend_font_config, title=None, margin=sd.pie_graph_margins )
 
 
-    state_cases = states_totals_df.loc[states_totals_df["state"] == state]["cases"].values[0]
-    state_death = states_totals_df.loc[states_totals_df["state"] == state]["deaths"].values[0]
+    state_cases = sd.states_totals_df.loc[sd.states_totals_df["state"] == state]["cases"].values[0]
+    state_death = sd.states_totals_df.loc[sd.states_totals_df["state"] == state]["deaths"].values[0]
     state_mrate = round((state_death / state_cases) * 100, 3)
     state_mrate_noseniors = round(((state_death - senior_deaths)/ state_cases) * 100, 3)
 
@@ -252,7 +533,8 @@ def build_state_graphs(json_state_file, state) -> list:
 
             html.P(className="spacer"),
 
-            html.H5("Mortality Rates"),
+            html.H4("Mortality Rates", className="main-subheader"),
+            html.P(className="spacer"),
 
                 html.Table([
                     html.Tbody([
@@ -270,7 +552,7 @@ def build_state_graphs(json_state_file, state) -> list:
             html.P(className="spacer"),
             html.P(className="spacer"),
 
-            html.H3("Age Statistics"),
+            html.H4("Age Statistics", className="main-subheader"),
             html.P("Note: One or more data groups (age/race) have counts between 1-9 and have been suppressed in accordance with NCHS confidentiality standards."),
             html.Ul([
                 html.Li("Children: 0-14"),
@@ -288,14 +570,15 @@ def build_state_graphs(json_state_file, state) -> list:
 
             html.P(className="spacer"),
             html.P(className="spacer"),
-            html.H3("Race Statistics"),
+
+            html.H4("Race Statistics", className="main-subheader"),
             html.P(className="spacer"),
 
 
             html.Div([
                 html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar',className="state-figure-bar",figure=race_death_bar)], className="bar chart"), 
                 html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie',className="state-figure-pie",figure=race_death_pie)], className="pie chart")
-            ], className="row")
+            ], className="row"),
         ])    
     )
 
