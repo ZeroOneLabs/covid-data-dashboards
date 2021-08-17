@@ -98,7 +98,6 @@ for state, data in state_file.items():
             national_senior_deaths += data["Age"][age_demo]["total_deaths"]
 
 
-
 us_totals_cases = us_totals_df["cases"].values[0]
 us_totals_death = us_totals_df["deaths"].values[0]
 us_totals_mrate = round((us_totals_death / us_totals_cases) * 100, 2)
@@ -299,71 +298,9 @@ app.layout = html.Div([
 
 
 
-        html.Div([
-
-            html.P(className="spacer"),
-            html.P(className="spacer"),
-
-
-            html.Hr(),
-
-            html.H4("Notes", className="main-subheader"),
-            html.P("Please take care to notice and pay respect to the number of COVID deaths per state. Each bar graph displays the total, in a relative width, which may give an impresison the respective deaths are far greater than they really are. For example, one state may have a maximum of COVID deaths of around 23,000, while another state's max COVID deaths may be around 9,000."),
-            html.P("State-wide data is retrieved nightly from the New York Times GitHub repository."),
-            html.P("The information on this website is by no means to be taken as medical advice. If you have any serious concerns about your health, I urge you to contact your doctor or your healthcare maintenance organization (HMO). I advise you to follow your local and federal ordinances, in regards to any safety measures for mitigating the effects of COVID-19."),
-
-            html.P(className="spacer"),
-            html.P(className="spacer"),
-
-            html.H3("Data last updated from CDC"), 
-
-            html.P(className="spacer"),
-
-            html.Div([
-                html.P([
-                    html.Li([f"Race data: {str(last_updated_race)}"]),
-                    html.Li([f"Age data: {str(last_updated_age)}"]),
-                    ])
-            ]),
-            html.P([
-                html.Span("Mortality rates are calculated, using the CDC's definition for the methodology of calculating the mortality rate of an infectious disease using the following formula:"),
-                html.Br(),
-                html.Span("(deaths / cases) * 100 ~ per 100,000 people, or over a period of time (in this case the total span of the COVID pandemic)", className="monospaced")
-            ]),
-
-            html.P(className="spacer"),
-
-            html.Div([
-                html.H4("Age Group Definitions"), 
-                html.P([
-                    html.Li("Children: 0-14"),
-                    html.Li("Teen/Adult: 15-44"),
-                    html.Li("Adv Adult: 45-64"),
-                    html.Li("Senior: 65 +"),
-                    ])
-            ]),
-
-            html.Hr(),
-
-            html.Br(),
-            html.P("Data gathered from the following sources:"), 
-                html.P([
-                    html.Li([
-                        html.A("CDC: Provisional COVID-19 Deaths - Distribution of Deaths by Race and Hispanic Origin", href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Deaths-Distribution-of-Deaths/pj7m-y5uh", target="_blank")
-                        ]),
-                    html.Li([
-                        html.A("CDC: Provisional COVID-19 - Deaths by Sex and Age", href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Deaths-by-Sex-and-Age/9bhg-hcku", target="_blank")
-                    ]),
-                    html.Li([
-                        html.A("New York Times' GitHub COVID-19 Repository", href="https://github.com/nytimes/covid-19-data", target="_blank")
-                    ]),
-            ]),
-            html.P([html.Span("This COVID-19 data dashboard was created by "),html.A("ZeroOneLabs.com", href="https://zeroonelabs.com", target="_blank")]),
-            html.Br(),
-            html.Br(),
-            html.Br(),
-
-        ], id="footer", className="footer"),
+        html.Div(
+            data_sections.get_footer(last_updated_race, last_updated_age), 
+            id="footer", className="footer"),
 
         html.P(className="footer-spacer"),
         html.P("You are not allowed to read this far. You must scroll up immediately.", className="not-allowed")
@@ -427,7 +364,7 @@ def update_figure(pathname: None):
             if url_path_two == "":
                 value = default_state
 
-            state_figure_list = data_sections.build_state_graphs(state_file, value)
+            state_figure_list = data_sections.build_state_graphs(state_file, value, state_table_dict_df, us_totals_cases, us_totals_death, us_population)
             return state_figure_list        
 
 
@@ -440,9 +377,9 @@ def update_figure(pathname: None):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True,host=os.getenv('HOST','192.168.1.20')) # Use for testing
+    # app.run_server(debug=True,host=os.getenv('HOST','192.168.0.0')) # Use for testing
     # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
-    # app.run_server(debug=False) # Use for production
+    app.run_server(debug=False) # Use for production
 
 
 

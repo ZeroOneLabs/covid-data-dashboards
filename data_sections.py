@@ -253,9 +253,6 @@ def get_about_covid_stats() -> list:
 
         The ultimate purpose of this dashboard is to help people like you empower yourselves with simple, yet effective knowledge that comes from the New York Times and the CDC. I want to help educate people on generally how deadly the COVID-19 disease in the United States by pulling official data and calculating those numbers to get a mortality rate – or rather the relative chances one would have if they contracted COVID in a certain geographical area in the United States.
 
-        &nbsp;
-
-        If you are viewing this data dashboard on a tablet or mobile device, I would advise you to turn your device into "landscape mode" in order to see the graphs and text a little better, or to view this on a desktop web browser.
         ''', id="purpose-div"),
 
     ]
@@ -347,11 +344,11 @@ def get_state_picker(state_name_link_html_list) -> list:
     return retval
 
 
-def build_state_graphs(json_state_file, state) -> list:
+def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_cases, us_totals_death, us_population) -> list:
     state_info_data_list = []
     state_id_str = state.replace(" ", "-").lower()
     data = json_state_file[state]
-# us_totals_cases, us_totals_death
+
     bar_legend_font_config = dict(family="Helvetica", size=18, color="Black")
 
 
@@ -507,16 +504,48 @@ def build_state_graphs(json_state_file, state) -> list:
     state_cases = sd.states_totals_df.loc[sd.states_totals_df["state"] == state]["cases"].values[0]
     state_death = sd.states_totals_df.loc[sd.states_totals_df["state"] == state]["deaths"].values[0]
     state_mrate = round((state_death / state_cases) * 100, 3)
-    state_mrate_noseniors = round(((state_death - senior_deaths)/ state_cases) * 100, 3)
+    state_mrate_noseniors = round(((state_death - senior_deaths)/ (state_cases - senior_deaths)) * 100, 3)
+
+    state_pct_of_natl_cases = round((state_cases / us_totals_cases) * 100, 2)
+    state_pct_of_natl_deaths = round((state_death / us_totals_death) * 100, 2)
+
+    state_pct_of_natl_pop_cases = round((state_cases / us_population) * 100, 2)
+    state_pct_of_natl_pop_deaths = round((state_death / us_population) * 100, 3)
+
+    # state_table_dict_df = state_table_dict_df.sort_values(by="Deaths", ascending=False)
+    # state_rank = state_table_dict_df[state_table_dict_df["State"] == state].index[0]
+    # print(state_table_dict_df.to_dict())
+
+    state_rank_list = []
+    state_rank_dict = state_table_dict_df.to_dict()
+    try:
+        for state_id, teh_state in state_rank_dict['State'].items():
+            # print(state_id, teh_state)
+            state_rank_list.append(
+                {'state': teh_state, 'mortality_rate': state_rank_dict['Mortality Rate'][state_id]}
+            )
+
+        def sort_states(s):
+            return s['mortality_rate']
+
+        state_rank_list.sort(key=sort_states, reverse=True)
+        state_rank = state_rank_list.index({'state': state, 'mortality_rate': state_mrate})
+
+        state_top_rank = state_rank_list[0]['state']
+        state_bot_rank = state_rank_list[-1]['state']
+
+        state_rank += 1
+    except Exception as e:
+        # print(f"Error: {e}. State List: {state_rank_list}")
+        state_rank = "unknown "
+
 
 
     state_info_data_list.append(
         html.Div([
 
             html.H2(state, className="main-header"),
-
-            html.P(className="spacer"),
-            html.P(className="spacer"),
+            html.P(className="spacer"), html.P(className="spacer"),
         
             html.Table([
                 html.Tbody([
@@ -527,7 +556,33 @@ def build_state_graphs(json_state_file, state) -> list:
                     html.Tr([
                         html.Td("Deaths", className="state-stat-title"),
                         html.Td(f"{state_death:,}", className="state-stat-num")
-                    ])
+                    ]),
+                ])
+            ], className="stat-table table table-responsive"),
+
+            html.P(className="spacer"),
+
+            html.H4(f"How does {state} compare to the rest of the US?", className="main-subsubheader"),
+            html.P(className="spacer"),
+
+            html.Table([
+                html.Tbody([
+                    html.Tr([
+                        html.Td("% of US Cases", className="state-stat-title"),
+                        html.Td(f"{state_pct_of_natl_cases}%", className="state-stat-num")
+                    ]), 
+                    html.Tr([
+                        html.Td("% of US Deaths", className="state-stat-title"),
+                        html.Td(f"{state_pct_of_natl_deaths}%", className="state-stat-num")
+                    ]),
+                    html.Tr([
+                        html.Td("Case % of US Population", className="state-stat-title"),
+                        html.Td(f"{state_pct_of_natl_pop_cases}%", className="state-stat-num")
+                    ]),
+                    html.Tr([
+                        html.Td("Death % of US Population", className="state-stat-title"),
+                        html.Td(f"{state_pct_of_natl_pop_deaths}%", className="state-stat-num")
+                    ]),
                 ])
             ], className="stat-table table table-responsive"),
 
@@ -539,6 +594,10 @@ def build_state_graphs(json_state_file, state) -> list:
                 html.Table([
                     html.Tbody([
                         html.Tr([
+                            html.Td(f"Rank*", className="state-stat-title"),
+                            html.Td(f"{state_rank}th", className="state-stat-num")
+                        ]),
+                        html.Tr([
                             html.Td(f"Average mortality rate for {state}", className="state-stat-title"),
                             html.Td(f"{state_mrate:,}%", className="state-stat-num")
                         ]),
@@ -548,6 +607,10 @@ def build_state_graphs(json_state_file, state) -> list:
                         ])
                     ])
                 ], className="stat-table table table-responsive"),
+
+            html.P(f"* Out of 50 States (and District of Columbia). Higher rank (closer to 1st) means higher mortality rate. Note: The state with Rank #1 is {state_top_rank} and the state with the lowest mortatlity rate is {state_bot_rank}."),
+            html.P("** Senior (65 yrs+) deaths & cases removed from pool of calculated mortality rate, leaving ages from 0 to 64."),
+
 
             html.P(className="spacer"),
             html.P(className="spacer"),
@@ -585,7 +648,77 @@ def build_state_graphs(json_state_file, state) -> list:
 
     return state_info_data_list
 
+def get_footer(last_updated_race, last_updated_age) -> list:
+    retval = [
 
+        html.P(className="spacer"),
+
+        html.H4("Spread the word - the more we know, the more we grow!", className="main-subsubheader"),
+        html.P(className="spacer"),
+
+        html.P("This project can only be as successful as the people who get involved and share this dashboard app. Please help me spread the word!"),
+        html.Ul([
+            html.Li(html.A("Share to Facebook", href="https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fcovid-state-demographic-data.herokuapp.com%2F", target="_blank")),
+            html.Li(html.A("Share to Twitter", href="https://twitter.com/intent/tweet?text=Check out this awesome COVID data dashboard I found via @ZeroOneLabs: https%3A//covid-state-demographic-data.herokuapp.com/", target="_blank")),
+            html.Li(html.A("Share to LinkedIn", href="https://www.linkedin.com/shareArticle?mini=true&url=https%3A//covid-state-demographic-data.herokuapp.com/&title=Check%20out%20this%20awesome%20COVID%20data%20dashboard!&summary=&source=", target="_blank")),
+        ]),
+
+
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+
+
+        html.Hr(),
+
+        html.H4("Notes", className="main-subsubheader"),
+        html.P("Please take care to notice and pay respect to the number of COVID deaths per state. Each bar graph displays the total, in a relative width, which may give an impresison the respective deaths are far greater than they really are. For example, one state may have a maximum of COVID deaths of around 23,000, while another state's max COVID deaths may be around 9,000."),
+        html.P("State-wide data is retrieved nightly from the New York Times GitHub repository."),
+        html.P("The information on this website is by no means to be taken as medical advice. If you have any serious concerns about your health, I urge you to contact your doctor or your healthcare maintenance organization (HMO). I advise you to follow your local and federal ordinances, in regards to any safety measures for mitigating the effects of COVID-19."),
+
+        html.P(className="spacer"),
+        html.P(className="spacer"),
+
+        html.H3("Data last updated from CDC"), 
+
+        html.P(className="spacer"),
+
+        html.Div([
+            html.P([
+                html.Li([f"Race data: {str(last_updated_race)}"]),
+                html.Li([f"Age data: {str(last_updated_age)}"]),
+                ])
+        ]),
+        html.P([
+            html.Span("Mortality rates are calculated, using the CDC's definition for the methodology of calculating the mortality rate of an infectious disease using the following formula:"),
+            html.Br(),
+            html.Span("(deaths / cases) * 100 ~ per 100,000 people, or over a period of time (in this case the total span of the COVID pandemic)", className="monospaced")
+        ]),
+        html.P("Data calcuated from the CDC does not include deaths with additional diseases, such as Pneumonia or Flu."),
+
+        html.P(className="spacer"),
+
+        html.Hr(),
+
+        html.Br(),
+        html.P("Data gathered from the following sources:"), 
+            html.P([
+                html.Li([
+                    html.A("CDC: Provisional COVID-19 Deaths - Distribution of Deaths by Race and Hispanic Origin", href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Deaths-Distribution-of-Deaths/pj7m-y5uh", target="_blank")
+                    ]),
+                html.Li([
+                    html.A("CDC: Provisional COVID-19 - Deaths by Sex and Age", href="https://data.cdc.gov/NCHS/Provisional-COVID-19-Deaths-by-Sex-and-Age/9bhg-hcku", target="_blank")
+                ]),
+                html.Li([
+                    html.A("New York Times' GitHub COVID-19 Repository", href="https://github.com/nytimes/covid-19-data", target="_blank")
+                ]),
+        ]),
+        html.P([html.Span("This COVID-19 data dashboard was created by "),html.A("ZeroOneLabs.com", href="https://zeroonelabs.com", target="_blank")]),
+        html.Br(),
+        html.Br(),
+        html.Br(),
+
+    ]
+    return retval
 
 def main():
     pass

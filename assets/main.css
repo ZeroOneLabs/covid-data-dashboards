@@ -19,7 +19,7 @@ strong {
     padding: 80px 0;
     margin-bottom: 80px;
 }
-.main-header, .main-subheader, .main-domsubheader {
+.main-header, .main-subheader, .main-domsubheader, .main-subsubheader {
     margin: 0 auto;
     text-align: center;
 }
@@ -29,6 +29,10 @@ strong {
 .main-subheader {
     font-size: 3em;
 }
+.main-subsubheader {
+    font-size: 2em;
+}
+
 .main-domsubheader {
     font-size: 1em;
 }
@@ -44,7 +48,8 @@ div.header-links {
 }
 div.header-links a {
     margin-top: 10px;
-    padding: 0 10px;
+    padding: 4px 15px;
+    font-size: 1.2em;
 }
 
 
