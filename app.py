@@ -116,6 +116,11 @@ us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / cdc_total_covid
 us_total_pct_age_advadlt = round( ( national_adult_deaths / cdc_total_covid_certified_deaths ) * 100)
 us_total_pct_age_senior = round( ( national_senior_deaths / cdc_total_covid_certified_deaths ) * 100)
 
+# us_total_pct_age_child_deaths = round( ( national_child_deaths / us_totals_death ) * 100)
+# us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / us_totals_death ) * 100)
+# us_total_pct_age_advadlt = round( ( national_adult_deaths / us_totals_death ) * 100)
+# us_total_pct_age_senior = round( ( national_senior_deaths / us_totals_death ) * 100)
+
 # print(national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths)
 # print(us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior)
 
@@ -394,8 +399,8 @@ def update_figure(pathname: None):
 
 if __name__ == '__main__':
     # app.run_server(debug=True,host=os.getenv('HOST','192.168.0.0')) # Use for testing
-    app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
-    # app.run_server(debug=False) # Use for production
+    # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
+    app.run_server(debug=False) # Use for production
 
 
 
