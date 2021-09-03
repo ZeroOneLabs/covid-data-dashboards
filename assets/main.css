@@ -52,6 +52,19 @@ div.header-links a {
     font-size: 1.2em;
 }
 
+*[data-dash-is-loading="true"]{
+    visibility: hidden;
+}
+*[data-dash-is-loading="true"]::before{
+    content: "Loading...";
+    font-size: 2.5em;
+    text-align: center;
+    display: block;
+    margin: 0 auto;
+    color: rgb(0, 0, 0);
+    visibility: visible;
+}
+
 
 
 #state-info-list {

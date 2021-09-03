@@ -54,14 +54,16 @@ for drop_state in ["Northern Mariana Islands", "Virgin Islands", "Puerto Rico", 
 
 try:
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
-        state_file = json.load(f)
+        json_state_file = json.load(f)
+        states_historical_df = pd.read_csv("data/NYT/us-states-historical.csv")
 except:
     dw.write_data()
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
-        state_file = json.load(f)
+        json_state_file = json.load(f)
+        states_historical_df = pd.read_csv("data/NYT/us-states-historical.csv")
 
 with open("data/state_info.json", "r") as jinfo:
-    population_info = json.load(jinfo)
+    state_population_info = json.load(jinfo)
 
 
 # GLOBALS
@@ -80,7 +82,7 @@ last_updated_age = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Sex_and_Age.jso
 
 
 national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths = 0, 0, 0, 0
-for state, data in state_file.items():
+for state, data in json_state_file.items():
     for age_demo in data["Age"]:
         if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
             continue
@@ -105,11 +107,14 @@ us_totals_mrate = round((us_totals_death / us_totals_cases) * 100, 2)
 us_totals_deaths_noseniors = us_totals_cases - national_senior_deaths
 us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_deaths_noseniors) * 100, 2)
 
+cdc_total_covid_certified_deaths = national_child_deaths + national_teenadult_deaths + national_adult_deaths + national_senior_deaths
+
+
 # us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior
-us_total_pct_age_child_deaths = round( ( national_child_deaths / us_totals_death ) * 100)
-us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / us_totals_death ) * 100)
-us_total_pct_age_advadlt = round( ( national_adult_deaths / us_totals_death ) * 100)
-us_total_pct_age_senior = round( ( national_senior_deaths / us_totals_death ) * 100)
+us_total_pct_age_child_deaths = round( ( national_child_deaths / cdc_total_covid_certified_deaths ) * 100)
+us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / cdc_total_covid_certified_deaths ) * 100)
+us_total_pct_age_advadlt = round( ( national_adult_deaths / cdc_total_covid_certified_deaths ) * 100)
+us_total_pct_age_senior = round( ( national_senior_deaths / cdc_total_covid_certified_deaths ) * 100)
 
 # print(national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths)
 # print(us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior)
@@ -144,7 +149,7 @@ def create_nat_age_death_pct_pie() -> px.pie:
 
 
 
-us_population = population_info['national']['US']['pop']
+us_population = state_population_info['national']['US']['pop']
 
 us_percent_infected = round((us_totals_cases / us_population) * 100 ,2)
 us_percent_killed = round((us_totals_death / us_population) * 100 ,2)
@@ -207,8 +212,8 @@ state_table_race_dict = {
 
 
 ## DATA TABLE STUFF
-for state in state_file.keys():
-    data = state_file[state]
+for state in json_state_file.keys():
+    data = json_state_file[state]
 
     state_cases = states_totals_df.loc[states_totals_df["state"] == state]["cases"].values[0]
     state_death = states_totals_df.loc[states_totals_df["state"] == state]["deaths"].values[0]
@@ -288,6 +293,8 @@ app.layout = html.Div([
         # This is where we display main content above graphs
         html.Div([
             # This is where we return the main content
+
+            dcc.Loading(id="loading-1", children=[html.Div(id="loading-output-1")], type="default"),
             html.Div(
                 [],
                 className="data-container", 
@@ -306,16 +313,22 @@ app.layout = html.Div([
         html.P("You are not allowed to read this far. You must scroll up immediately.", className="not-allowed")
     ]) # End "container" Div
 ], id="container", className="container-fluid") # End app layout Div
+
+# @app.callback(Output("loading-output-1", "children"))
+# def input_triggers_spinner():
+#     datetime.time.sleep(1)
+#     return
+
+
 @app.callback(
         Output('data-loader', 'children'),
         Input('url', 'pathname')
         # Input('drop-down-chooser', 'value') # From a previous drop-down state picker. It was kinda ugly.
     )
 def update_figure(pathname: None):
-    value = default_state
+    state_name = default_state
     url_path_list = pathname.split("/")
     url_path_list.pop(0)
-    # print(f"URL printout: {url_path_list}")
 
     url_path_one = url_path_list[0].lower()
 
@@ -348,7 +361,7 @@ def update_figure(pathname: None):
                 return data_sections.get_state_picker(state_name_link_html_list)
 
             if url_path_two == "tables":
-                return data_sections.get_data_tables(state_table_dict_df, state_table_age_dict_df, state_table_race_dict_df)
+                return data_sections.get_data_tables(state_table_dict_df, state_table_age_dict_df, state_table_race_dict_df, state_population_info)
 
 
             if url_path_two == "":
@@ -359,12 +372,15 @@ def update_figure(pathname: None):
             if url_path_two:
                 urlpath_state_name = url_path_two.strip("/").replace("%20", " ")
                 if urlpath_state_name in state_name_list:
-                    value = urlpath_state_name
+                    state_name = urlpath_state_name
 
             if url_path_two == "":
-                value = default_state
+                state_name = default_state
 
-            state_figure_list = data_sections.build_state_graphs(state_file, value, state_table_dict_df, us_totals_cases, us_totals_death, us_population)
+
+            # state_historical_df = states_historical_df[states_historical_df['state'] == value]
+
+            state_figure_list = data_sections.build_state_graphs(json_state_file, state_name, state_table_dict_df, us_totals_cases, us_totals_death, us_population, states_historical_df)
             return state_figure_list        
 
 
@@ -378,8 +394,8 @@ def update_figure(pathname: None):
 
 if __name__ == '__main__':
     # app.run_server(debug=True,host=os.getenv('HOST','192.168.0.0')) # Use for testing
-    # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
-    app.run_server(debug=False) # Use for production
+    app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
+    # app.run_server(debug=False) # Use for production
 
 
 

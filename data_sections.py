@@ -1,5 +1,10 @@
+import json
+from datetime import datetime, timedelta
+
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import plotly.express as px
+import plotly.graph_objects as go
 
 import dash_html_components as html
 import dash_core_components as dcc
@@ -78,12 +83,14 @@ def get_national_stats(
         html.P("Percent of COVID deaths by age group", className="main-domsubheader"),
         html.P(className="spacer"),
 
-        # Haha! Fuck YOU! I created a method to create tables programmatically!
         du.create_html_table(national_total_pct_age_table_dict, tableClassname="stat-table table table-responsive"),
+
 
         dcc.Markdown(
             f"""
-            Regarding the average State, 'advanced adults' (45-64 years) and Seniors (65+) make up about 75% of COVID deaths. Inversely, **the average survival rate for COVID is {100 - us_totals_mrate}%,** and the average survival rate for people under 64 years of age is {100 - us_totals_mrate_noseniors}%.
+            The above % column does not add up to the same national total of COVID deaths, due to how the CDC collects and categorizes age demographics nationwide. I have tallied up the number of deaths per age demographic by the criteria that the CDC defines as "COVID death" and not "pneumonia deaths" or "pneumonie and covid-19 deaths". These numbers represent strictly COVID-19 deaths.
+
+            Regarding the average State, 'advanced adults' (45-64 years) and Seniors (65+) make up about 75% of COVID deaths. Inversely, **the average survival rate for COVID is {100 - us_totals_mrate}%,** and the average survival rate for **people under 64 years of age is {100 - us_totals_mrate_noseniors}%**.
             """),
 
         html.P("** Senior (65 yrs+) deaths & cases removed from pool of calculated data, leaving ages from 0 to 64."),
@@ -344,12 +351,104 @@ def get_state_picker(state_name_link_html_list) -> list:
     return retval
 
 
-def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_cases, us_totals_death, us_population) -> list:
+def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_totals_cases, us_totals_death, us_population, states_historical_df) -> list:
     state_info_data_list = []
-    state_id_str = state.replace(" ", "-").lower()
-    data = json_state_file[state]
+    state_id_str = state_name.replace(" ", "-").lower()
+    data = json_state_file[state_name]
+
+    date_sixty_days_ago = datetime.now() - timedelta(60)
+    date_sixty_days_ago_str = datetime.strftime(date_sixty_days_ago, "%Y-%m-%d")
+    date_yesterday = datetime.now() - timedelta(1)
+    date_yesterday_str = datetime.strftime(date_yesterday, "%Y-%m-%d")
+
+    df = states_historical_df
+
+
+    # Update the 'date' field to datetime objects
+    df.date=pd.to_datetime(df.date)
 
     bar_legend_font_config = dict(family="Helvetica", size=18, color="Black")
+
+    with open("data/state_info.json", "r") as jfile:
+        state_info_jata = json.load(jfile)
+    # print(state_name)
+
+    for the_state in state_info_jata['states']:
+        if state_info_jata['states'][the_state]['long'] == state_name:
+            # print(state_info_jata['states'][the_state]['long'])
+            neighbors_list = state_info_jata['states'][the_state]['neighbors']
+            neighbors_list.append(the_state)
+
+    neighbors_list_long = []
+    for state_short in neighbors_list:
+        neighbors_list_long.append(state_info_jata['states'][state_short]['long'])
+
+    state_neighbor_df = df[df['state'].isin(neighbors_list_long)]
+
+
+    state_line_graph_linear_death = px.line(state_neighbor_df,
+        x='date', y='deaths', color='state', title="Deaths")
+
+    state_line_graph_linear_cases = px.line(state_neighbor_df,
+        x='date', y='cases', color='state', title="Cases")
+
+    state_line_graph_log_death = px.line(state_neighbor_df,
+        x='date', y='deaths', color='state', title="Deaths")
+    state_line_graph_log_death.update_yaxes(type="log")
+
+    state_line_graph_log_cases = px.line(state_neighbor_df,
+        x='date', y='cases', color='state', title="Cases")
+    state_line_graph_log_cases.update_yaxes(type="log")
+
+
+    df_historical_last_sixty = df.loc[(df['date'] > date_sixty_days_ago_str) & (df['date'] < date_yesterday_str)].copy()
+    df_historical_last_sixty_group = df_historical_last_sixty[df_historical_last_sixty['state'].isin(neighbors_list_long)].copy()
+
+
+    df_historical_oldest_day = df.loc[df['date'] == date_sixty_days_ago_str].copy()
+    # ## Create state-specific dataframe from master dataframe
+    # state_df = df_historical_last_sixty.loc[df_historical_last_sixty['state'] == state_name]
+
+
+    for state_neighbor in neighbors_list_long:
+        df_state_single = df_historical_last_sixty_group.loc[df_historical_last_sixty_group['state'] == state_neighbor]
+        for case_type in ["cases", "deaths"]:
+            state_oldest_case_val = df_historical_oldest_day.loc[df_historical_oldest_day['state'] == state_neighbor, case_type].values[0]
+
+            the_count = 0
+            for the_date in df_state_single['date']:
+                new_case_val = 0
+                current_case_val = df_historical_last_sixty_group.loc[
+                    (df_historical_last_sixty_group['state'] == state_neighbor) & (df_historical_last_sixty_group['date'] == the_date), case_type
+                ].values[0]
+                new_case_val = current_case_val - state_oldest_case_val
+
+                # print(f"Subtracting {state_oldest_case_val} from {current_case_val} to get {new_case_val}, for case type {case_type}, on the state {state_neighbor}, at date {the_date}.")
+
+                df_historical_last_sixty_group.loc[
+                    (df_historical_last_sixty_group['state'] == state_neighbor) & (df_historical_last_sixty_group['date'] == the_date), case_type
+                ] = new_case_val
+
+                # the_count += 1
+                # if the_count == 3:
+                #     break
+
+
+    state_line_graph_linear_death_last_sixty = px.line(df_historical_last_sixty_group,
+        x='date', y='deaths', color='state', title="Deaths")
+
+    state_line_graph_linear_cases_last_sixty = px.line(df_historical_last_sixty_group,
+        x='date', y='cases', color='state', title="Cases")
+
+    state_line_graph_log_death_last_sixty = px.line(df_historical_last_sixty_group,
+        x='date', y='deaths', color='state', title="Deaths")
+    state_line_graph_log_death_last_sixty.update_yaxes(type="log")
+
+    state_line_graph_log_cases_last_sixty = px.line(df_historical_last_sixty_group,
+        x='date', y='cases', color='state', title="Cases")
+    state_line_graph_log_death_last_sixty.update_yaxes(type="log")
+
+
 
 
     ## Age demo statistics
@@ -496,13 +595,13 @@ def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_ca
 
 
     ## Create pie graph
-    race_death_pie = fig = px.pie(race_demo_death_pct_dict, values='Percent of Deaths', names='Race Group', title=f'{state} - Race Demographics - % COVID deaths', color_discrete_sequence=px.colors.diverging.Tealrose_r)
+    race_death_pie = fig = px.pie(race_demo_death_pct_dict, values='Percent of Deaths', names='Race Group', title=f'{state_name} - Race Demographics - % COVID deaths', color_discrete_sequence=px.colors.diverging.Tealrose_r)
     race_death_pie.update_traces(textposition='inside', textinfo='percent+label', showlegend=False)
     race_death_pie.update_layout( font=sd.pie_legend_font_config, title=None, margin=sd.pie_graph_margins )
 
 
-    state_cases = sd.states_totals_df.loc[sd.states_totals_df["state"] == state]["cases"].values[0]
-    state_death = sd.states_totals_df.loc[sd.states_totals_df["state"] == state]["deaths"].values[0]
+    state_cases = sd.states_totals_df.loc[sd.states_totals_df["state"] == state_name]["cases"].values[0]
+    state_death = sd.states_totals_df.loc[sd.states_totals_df["state"] == state_name]["deaths"].values[0]
     state_mrate = round((state_death / state_cases) * 100, 3)
     state_mrate_noseniors = round(((state_death - senior_deaths)/ (state_cases - senior_deaths)) * 100, 3)
 
@@ -529,7 +628,7 @@ def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_ca
             return s['mortality_rate']
 
         state_rank_list.sort(key=sort_states, reverse=True)
-        state_rank = state_rank_list.index({'state': state, 'mortality_rate': state_mrate})
+        state_rank = state_rank_list.index({'state': state_name, 'mortality_rate': state_mrate})
 
         state_top_rank = state_rank_list[0]['state']
         state_bot_rank = state_rank_list[-1]['state']
@@ -544,7 +643,7 @@ def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_ca
     state_info_data_list.append(
         html.Div([
 
-            html.H2(state, className="main-header"),
+            html.H2(state_name, className="main-header"),
             html.P(className="spacer"), html.P(className="spacer"),
         
             html.Table([
@@ -562,7 +661,7 @@ def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_ca
 
             html.P(className="spacer"),
 
-            html.H4(f"How does {state} compare to the rest of the US?", className="main-subsubheader"),
+            html.H4(f"How does {state_name} compare to the rest of the US?", className="main-subsubheader"),
             html.P(className="spacer"),
 
             html.Table([
@@ -598,11 +697,11 @@ def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_ca
                             html.Td(f"{state_rank}th", className="state-stat-num")
                         ]),
                         html.Tr([
-                            html.Td(f"Average mortality rate for {state}", className="state-stat-title"),
+                            html.Td(f"Average mortality rate for {state_name}", className="state-stat-title"),
                             html.Td(f"{state_mrate:,}%", className="state-stat-num")
                         ]),
                         html.Tr([
-                            html.Td(f"{state} Seniors Removed **", className="state-stat-title"),
+                            html.Td(f"{state_name} Seniors Removed **", className="state-stat-title"),
                             html.Td(f"{state_mrate_noseniors:,}%", className="state-stat-num")
                         ])
                     ])
@@ -641,6 +740,71 @@ def build_state_graphs(json_state_file, state, state_table_dict_df, us_totals_ca
             html.Div([
                 html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar',className="state-figure-bar",figure=race_death_bar)], className="bar chart"), 
                 html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie',className="state-figure-pie",figure=race_death_pie)], className="pie chart")
+            ], className="row"),
+
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+
+            html.H4(f"{state_name}'s Neighbor Comparison", className="main-subheader"),
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+
+            html.H4("Linear Comparison (since Jan 2020)", className="main-subsubheader"),
+            html.P(className="spacer"),
+
+            html.Div([
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-linear-line',className="state-figure-line",figure=state_line_graph_linear_death)], className="line chart"), 
+                html.Div([dcc.Graph(id=state_id_str + '-cases-linear-line',className="state-figure-pie",figure=state_line_graph_linear_cases)], className="line chart")
+            ], className="row"),
+
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+            html.H4("Logarithmic Comparison (since Jan 2020)", className="main-subsubheader"),
+            html.P(className="spacer"),
+
+            html.Div([
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar',className="state-figure-bar",figure=state_line_graph_log_death)], className="line chart"), 
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie',className="state-figure-pie",figure=state_line_graph_log_cases)], className="line chart")
+            ], className="row"),
+
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+
+            html.H4("What is Linear vs Logarithmic?", className="main-subheader"),
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+
+            dcc.Markdown(f"""
+            **Linear line graphs** represent a *1:1 representation* of values as they grow on the X and Y axis. What this means, is if one state has a value of 100 cases on *day 1* and 200 cases on day 2, and another state has 5 cases on *day 1* and 10 cases on day 2, the line graph will show a difference (i.e. a large gap) of 190 cases on the 2nd day."),
+
+            **Logarithmic line graphs** represent a *relative representation* of values as they grow on the X and Y axis. What this means, is if one state has a value of 100 cases on *day 1* and 200 cases on day 2, and *another state* has 5 cases on *day 1* and 10 cases on day 2, they both have a 200% increase - thus they have an equally relative change in percent between days on the 2nd day (i.e. there would be no gap between the lines).
+            
+            What this means, in regards to following COVID 'case' and 'death' number trends, is that when we use logarithmic representations of data, we can compare the patterns and/or tragectory of how the disease might progress throughout those regions. 
+            
+            One piece of information which is very important to observe and understand: **The closer the logarithmic lines are for each data point (day of the month, i.e. the line pattern), the closer each state is related, regarding their respective case and mortality trends**. This means that if New York and Deleware have the same relative increase in deaths, it could lean towards correlating extra-carricular contexts between regions - for example, enforced mask mandates, vaccines rates, local shut-downs, altitude, air humidity, storm patterns, proximity to similar borders or interstates, average poverty level, birth rate, or population density.
+
+            Now let's take a look at {state_name} and each of their neighbors for the last 60 days, in order to see a more recent picture of how the disease is developing in these regions.
+            """),
+
+
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+            html.H4("Linear Comparison (last 60 days)", className="main-subsubheader"),
+            html.P(className="spacer"),
+
+            html.Div([
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-linear-line',className="state-figure-line",figure=state_line_graph_linear_death_last_sixty)], className="line chart"), 
+                html.Div([dcc.Graph(id=state_id_str + '-cases-linear-line',className="state-figure-pie",figure=state_line_graph_linear_cases_last_sixty)], className="line chart")
+            ], className="row"),
+
+            html.P(className="spacer"),
+            html.P(className="spacer"),
+            html.H4("Logarithmic Comparison (last 60 days)", className="main-subsubheader"),
+            html.P(className="spacer"),
+
+            html.Div([
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-bar',className="state-figure-bar",figure=state_line_graph_log_death_last_sixty)], className="line chart"), 
+                html.Div([dcc.Graph(id=state_id_str + '-deaths-per-race-pie',className="state-figure-pie",figure=state_line_graph_log_cases_last_sixty)], className="line chart")
             ], className="row"),
         ])    
     )

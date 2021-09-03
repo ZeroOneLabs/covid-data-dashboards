@@ -29,6 +29,7 @@ def write_data():
     states_totals_df = pd.read_csv("data/NYT/us-states-latest.csv")
 
     ## NOTE: For some reason Pandas wasn't iterating through a json dataframe the same way Python iterates natively over json. Weird.
+    ## Edit - update: I found out that when I was iterating through a Pandas DataFrame, I needed to cite the .values[0] method to get the values.
     # state_age_info_df = pd.read_json("data/state_info.json")
 
     with open("data/state_info.json") as j:
