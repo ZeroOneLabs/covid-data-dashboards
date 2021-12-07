@@ -8,7 +8,7 @@ import pandas as pd
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import dash_table
+from dash import dash_table
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
@@ -20,6 +20,14 @@ import data_downloader as dd
 import dashboard_utils as du
 
 import data_sections
+
+#TODO: Add charts that compare population density
+#TODO: Add markers for vaccine dates and/or mask mandates - perhaps make a new page for these graphs?
+#TODO: Add total death numbers for each age group and race
+#TODO: Add total death percentages for each age group and race
+#TODO: Write function to create bar and pie graphs to reduce code duplication
+#TODO: Write function to create "National Statistics", "State Statistics" (semi-done), and "About" html element lists
+#TODO: Put each major function in their own .py file to reduce clutter?
 
 
 
@@ -73,14 +81,6 @@ last_updated_age = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Sex_and_Age.jso
 
 
 ## NATIONAL STUFF
-
-#TODO: Add total death numbers for each age group and race
-#TODO: Add total death percentages for each age group and race
-#TODO: Write function to create bar and pie graphs to reduce code duplication
-#TODO: Write function to create "National Statistics", "State Statistics" (semi-done), and "About" html element lists
-    #TODO: Put each major function in their own .py file to reduce clutter?
-
-
 national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths = 0, 0, 0, 0
 for state, data in json_state_file.items():
     for age_demo in data["Age"]:

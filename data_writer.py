@@ -21,6 +21,13 @@ def write_data():
         dd.download_cdc_data()
 
 
+    ## TODO:
+    #
+    # * Write files per state
+    # * Write files per age demo
+    # * Write files per race demo
+    # * Ditch NYT data and use only the CDC's data?
+
 
     ## TODO: Use os module to do logical .exists() checks?
     race_demo_df = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Race_and_Hispanic_Origin.json").fillna(0)
@@ -38,6 +45,7 @@ def write_data():
     demo_age = [ "Under 1 year", "0-17 years", "1-4 years", "5-14 years", "15-24 years", "18-29 years", "25-34 years", "30-39 years", "35-44 years", "40-49 years", "45-54 years", "50-64 years", "55-64 years", "65-74 years", "75-84 years", "85 years and over" ]
     demo_sex = [ "Male", "Female" ]
     demo_races = { "Black": "non_hispanic_black_african_american", "White": "non_hispanic_white", "Latino": "hispanic_latino_total", "Asian": "non_hispanic_asian_pacific_islander", "Multiracial": "non_hispanic_more_than_one_race", "Indian_Alaskan": "non_hispanic_american_indian_alaska_native", "Islander": "nh_nhopi" }
+
 
     parent_dict = { }
     for st, state in state_age_info_df["states"].items():
@@ -59,11 +67,14 @@ def write_data():
             # print(f"Couldn't find {state_name}")
             continue
 
+        ## Process age demographics
         for age in demo_age:
             age_all_sex = state_age_info_df.loc[(state_age_info_df["age_group"] == age)].fillna(0)
 
             try:
                 age_all_sex_death = age_all_sex["covid_19_deaths"].values[0]
+                age_all_sex_death += age_all_sex["pneumonia_influenza_or_covid"].values[0]
+                age_all_sex_death += age_all_sex["pneumonia_and_covid_19_deaths"].values[0]
             except:
                 age_all_sex_death = 0
 
