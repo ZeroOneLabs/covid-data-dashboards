@@ -1,14 +1,12 @@
 import os
 import json
-import sys
 from datetime import datetime
 
 import pandas as pd
 
-import dash
+from dash import Dash
 from dash import dcc
 from dash import html
-# from dash import dash_table
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
@@ -16,9 +14,6 @@ import plotly.express as px
 
 import data_writer as dw
 import shared_data as sd
-import data_downloader as dd
-import dashboard_utils as du
-
 import data_sections
 
 #TODO: Add charts that compare population density
@@ -26,14 +21,10 @@ import data_sections
 #TODO: Add total death numbers for each age group and race
 #TODO: Add total death percentages for each age group and race
 #TODO: Write function to create bar and pie graphs to reduce code duplication
-#TODO: Write function to create "National Statistics", "State Statistics" (semi-done), and "About" html element lists
 #TODO: Put each major function in their own .py file to reduce clutter?
-#TODO: Write files for national, each state, race, and age - to help with load times. 
-#+ Or maybe loading the data into RAM on a single instance is more efficient?
 
 
-today = datetime.today()
-today_str = today.strftime("%Y-%m-%d")
+today_str = datetime.today().strftime("%Y-%m-%d")
 
 html_container_list = []
 state_info_data_list = []
@@ -42,7 +33,7 @@ dash_theme = dbc.themes.BOOTSTRAP
 # dash_theme = dbc.themes.LUX
 # dash_theme = dbc.themes.CYBORG
 
-app = dash.Dash(__name__,external_stylesheets=[dash_theme])
+app = Dash(__name__,external_stylesheets=[dash_theme])
 server = app.server
 app.title="Zero One Labs - US COVID Demographic Dashboard"
 
