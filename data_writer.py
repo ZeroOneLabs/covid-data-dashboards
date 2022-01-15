@@ -73,7 +73,7 @@ def write_data():
 
             try:
                 age_all_sex_death = age_all_sex["covid_19_deaths"].values[0]
-                age_all_sex_death += age_all_sex["pneumonia_influenza_or_covid"].values[0]
+                # age_all_sex_death += age_all_sex["pneumonia_influenza_or_covid"].values[0]
                 age_all_sex_death += age_all_sex["pneumonia_and_covid_19_deaths"].values[0]
             except:
                 age_all_sex_death = 0

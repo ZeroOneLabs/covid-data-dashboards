@@ -8,7 +8,3 @@ data/CDC/*
 data/NYT/*
 data/ZeroOneLabs/*
 playground.ipynb
-data/NYT/us-counties-latest.csv
-data/NYT/us-latest.csv
-data/NYT/us-states-latest.csv
-*.csv

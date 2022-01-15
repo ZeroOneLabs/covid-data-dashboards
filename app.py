@@ -6,9 +6,9 @@ from datetime import datetime
 import pandas as pd
 
 import dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash import dash_table
+from dash import dcc
+from dash import html
+# from dash import dash_table
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
@@ -28,7 +28,8 @@ import data_sections
 #TODO: Write function to create bar and pie graphs to reduce code duplication
 #TODO: Write function to create "National Statistics", "State Statistics" (semi-done), and "About" html element lists
 #TODO: Put each major function in their own .py file to reduce clutter?
-
+#TODO: Write files for national, each state, race, and age - to help with load times. 
+#+ Or maybe loading the data into RAM on a single instance is more efficient?
 
 
 today = datetime.today()
@@ -57,8 +58,8 @@ states_totals_df = sd.states_totals_df
 # Delete regions that throw errors from the States data frame
 for drop_state in ["Northern Mariana Islands", "Virgin Islands", "Puerto Rico", "Guam"]:
     states_totals_df = states_totals_df.drop(
-            states_totals_df[states_totals_df['state'] == drop_state].index
-        )
+        states_totals_df[states_totals_df['state'] == drop_state].index
+    )
 
 try:
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
@@ -145,8 +146,8 @@ def create_nat_age_death_pct_pie() -> px.pie:
     national_total_pct_age_fig = px.pie(
         national_total_pct_age_dict, 
         values='Percent of COVID deaths (Nationally)', names='Age Group', 
-        color="Age Group", 
-        )
+        color="Age Group"
+    )
     national_total_pct_age_fig.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
     national_total_pct_age_fig.update_layout( font=sd.pie_legend_font_config, title=None, margin=sd.pie_graph_margins )
 
@@ -399,8 +400,8 @@ def update_figure(pathname: None):
 
 if __name__ == '__main__':
     # app.run_server(debug=True,host=os.getenv('HOST','192.168.0.0')) # Use for testing
-    # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
-    app.run_server(debug=False) # Use for production
+    app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
+    # app.run_server(debug=False) # Use for production
 
 
 

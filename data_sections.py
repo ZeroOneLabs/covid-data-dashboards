@@ -6,9 +6,9 @@ pd.options.mode.chained_assignment = None
 import plotly.express as px
 import plotly.graph_objects as go
 
-import dash_html_components as html
-import dash_core_components as dcc
-import dash_table
+from dash import html
+from dash import dcc
+from dash import dash_table
 
 import shared_data as sd
 import dashboard_utils as du
@@ -88,7 +88,7 @@ def get_national_stats(
 
         dcc.Markdown(
             f"""
-            The above % column does not add up to the same national total of COVID deaths, due to how the CDC collects and categorizes age demographics nationwide. I have tallied up the number of deaths per age demographic by the criteria that the CDC defines as "COVID death" and not "pneumonia deaths" or "pneumonie and covid-19 deaths". These numbers represent strictly COVID-19 deaths.
+            The above % column does not add up to the same national total of COVID deaths, due to how the CDC collects and categorizes age demographics nationwide. I have tallied up the number of deaths per age demographic by the criteria that the CDC defines as "COVID death" and "pneumonia + COVID deaths" but not "pneumonia, flu, and COVID deaths".
 
             Regarding the average State, 'advanced adults' (45-64 years) and Seniors (65+) make up about 75% of COVID deaths. Inversely, **the average survival rate for COVID is {100 - us_totals_mrate}%,** and the average survival rate for **people under 64 years of age is {100 - us_totals_mrate_noseniors}%**.
             """),
