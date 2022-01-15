@@ -4,5 +4,7 @@ venv
 *.pyc
 .DS_Store
 __pycache__
-data
+data/CDC
+data/NYT
+data/ZeroOneLabs
 playground.ipynb
