@@ -356,8 +356,12 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
     state_id_str = state_name.replace(" ", "-").lower()
     data = json_state_file[state_name]
 
+    date_today_str = datetime.strftime(datetime.today(), "%Y-%m-%d")
+    date_twodays_ago_str = datetime.strftime((datetime.now() - timedelta(2)), "%Y-%m-%d")
     date_sixty_days_ago = datetime.now() - timedelta(60)
     date_sixty_days_ago_str = datetime.strftime(date_sixty_days_ago, "%Y-%m-%d")
+    date_fifty_nine_days_ago = datetime.now() - timedelta(59)
+    date_fifty_nine_days_ago_str = datetime.strftime(date_fifty_nine_days_ago, "%Y-%m-%d")
     date_yesterday = datetime.now() - timedelta(1)
     date_yesterday_str = datetime.strftime(date_yesterday, "%Y-%m-%d")
 
@@ -371,7 +375,6 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
 
     with open("data/state_info.json", "r") as jfile:
         state_info_jata = json.load(jfile)
-    # print(state_name)
 
     for the_state in state_info_jata['states']:
         if state_info_jata['states'][the_state]['long'] == state_name:
@@ -404,6 +407,33 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
     df_historical_last_sixty = df.loc[(df['date'] > date_sixty_days_ago_str) & (df['date'] < date_yesterday_str)].copy()
     df_historical_last_sixty_group = df_historical_last_sixty[df_historical_last_sixty['state'].isin(neighbors_list_long)].copy()
 
+# # # # # # 
+    sixty_day_old_state_deaths = df_historical_last_sixty.loc[
+        (df_historical_last_sixty['date'] == date_fifty_nine_days_ago_str) &
+        (df_historical_last_sixty['state'] == state_name),
+        "deaths"].values[0]
+    today_day_old_state_deaths = df_historical_last_sixty.loc[
+        (df_historical_last_sixty['date'] == date_twodays_ago_str) &
+        (df_historical_last_sixty['state'] == state_name),
+        "deaths"].values[0]
+
+    sixty_day_old_state_cases = df_historical_last_sixty.loc[
+        (df_historical_last_sixty['date'] == date_fifty_nine_days_ago_str) &
+        (df_historical_last_sixty['state'] == state_name),
+        "cases"].values[0]
+    today_day_old_state_cases = df_historical_last_sixty.loc[
+        (df_historical_last_sixty['date'] == date_twodays_ago_str) &
+        (df_historical_last_sixty['state'] == state_name),
+        "cases"].values[0]
+
+    today_day_old_state_deaths = today_day_old_state_deaths - sixty_day_old_state_deaths
+    today_day_old_state_cases = today_day_old_state_cases - sixty_day_old_state_cases
+    sixty_day_mortality_rate = round((today_day_old_state_deaths / today_day_old_state_cases) * 100,3)
+
+    # print(f"Today  old deaths for {state_name}: {today_day_old_state_deaths}")
+    # print(f"Today  old cases  for {state_name}: {today_day_old_state_cases}")
+    # print(f"Mortality rate    for {state_name}: {sixty_day_mortality_rate}%")
+
 
     df_historical_oldest_day = df.loc[df['date'] == date_sixty_days_ago_str].copy()
     # ## Create state-specific dataframe from master dataframe
@@ -415,7 +445,6 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
         for case_type in ["cases", "deaths"]:
             state_oldest_case_val = df_historical_oldest_day.loc[df_historical_oldest_day['state'] == state_neighbor, case_type].values[0]
 
-            the_count = 0
             for the_date in df_state_single['date']:
                 new_case_val = 0
                 current_case_val = df_historical_last_sixty_group.loc[
@@ -423,15 +452,9 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
                 ].values[0]
                 new_case_val = current_case_val - state_oldest_case_val
 
-                # print(f"Subtracting {state_oldest_case_val} from {current_case_val} to get {new_case_val}, for case type {case_type}, on the state {state_neighbor}, at date {the_date}.")
-
                 df_historical_last_sixty_group.loc[
                     (df_historical_last_sixty_group['state'] == state_neighbor) & (df_historical_last_sixty_group['date'] == the_date), case_type
                 ] = new_case_val
-
-                # the_count += 1
-                # if the_count == 3:
-                #     break
 
 
     state_line_graph_linear_death_last_sixty = px.line(df_historical_last_sixty_group,
@@ -454,7 +477,7 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
     ## Age demo statistics
     age_demo_death_dict = { "Age Range": [], "COVID Deaths": [] }
     for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
+        # These groups collect more deaths which skews the visual representation in the graphs and pie charts.
         if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
             continue
         age_demo_death_dict["Age Range"].append(age_demo)
@@ -463,7 +486,7 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
 
     age_demo_death_pct_dict = { "Age Range": [], "Percent of Deaths": [] }
     for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
+        # These groups collect more deaths which skews the visual representation in the graphs and pie charts.
         if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
             continue
         age_demo_death_pct_dict["Age Range"].append(age_demo)
@@ -476,7 +499,7 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
     child_death_pct, teenadult_death_pct, adult_death_pct, senior_death_pct = 0.0, 0.0, 0.0, 0.0
 
     for age_demo in data["Age"]:
-        # These group of data collects more deaths and skews the visual representation in the graphs and pie charts.
+        # These groups collect more deaths which skews the visual representation in the graphs and pie charts.
         if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
             continue
 
@@ -649,18 +672,51 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
             html.Table([
                 html.Tbody([
                     html.Tr([
+                        html.Td(""),
+                        html.Td("All Time"),
+                        html.Td("Last 60 Days")
+                    ]),
+                    html.Tr([
                         html.Td("Cases", className="state-stat-title"),
-                        html.Td(f"{state_cases:,}", className="state-stat-num")
+                        html.Td(f"{state_cases:,}", className="state-stat-num"),
+                        html.Td(f"{today_day_old_state_cases:,}", className="state-stat-num")
                     ]),
                     html.Tr([
                         html.Td("Deaths", className="state-stat-title"),
-                        html.Td(f"{state_death:,}", className="state-stat-num")
+                        html.Td(f"{state_death:,}", className="state-stat-num"),
+                        html.Td(f"{today_day_old_state_deaths:,}", className="state-stat-num")
                     ]),
                 ])
             ], className="stat-table table table-responsive"),
 
             html.P(className="spacer"),
 
+
+            html.H4("Mortality Rates", className="main-subheader"),
+            html.P(className="spacer"),
+
+                html.Table([
+                    html.Tbody([
+                        html.Tr([
+                            html.Td(f"Rank*", className="state-stat-title"),
+                            html.Td(f"{state_rank}th", className="state-stat-num")
+                        ]),
+                        html.Tr([
+                            html.Td(f"Average mortality rate for {state_name}", className="state-stat-title"),
+                            html.Td(f"{state_mrate:,}%", className="state-stat-num")
+                        ]),
+                        html.Tr([
+                            html.Td(f"Average mortality rate for {state_name} (last 60 days)", className="state-stat-title"),
+                            html.Td(f"{sixty_day_mortality_rate:,}%", className="state-stat-num")
+                        ])
+                    ])
+                ], className="stat-table table table-responsive"),
+
+            html.P(f"* Out of 50 States (and District of Columbia). Higher rank (closer to 1st) means higher mortality rate. Note: The state with Rank #1 is {state_top_rank} and the state with the lowest mortatlity rate is {state_bot_rank}."),
+
+
+            html.P(className="spacer"),
+            
             html.H4(f"How does {state_name} compare to the rest of the US?", className="main-subsubheader"),
             html.P(className="spacer"),
 
@@ -685,30 +741,6 @@ def build_state_graphs(json_state_file, state_name, state_table_dict_df, us_tota
                 ])
             ], className="stat-table table table-responsive"),
 
-            html.P(className="spacer"),
-
-            html.H4("Mortality Rates", className="main-subheader"),
-            html.P(className="spacer"),
-
-                html.Table([
-                    html.Tbody([
-                        html.Tr([
-                            html.Td(f"Rank*", className="state-stat-title"),
-                            html.Td(f"{state_rank}th", className="state-stat-num")
-                        ]),
-                        html.Tr([
-                            html.Td(f"Average mortality rate for {state_name}", className="state-stat-title"),
-                            html.Td(f"{state_mrate:,}%", className="state-stat-num")
-                        ]),
-                        html.Tr([
-                            html.Td(f"{state_name} Seniors Removed **", className="state-stat-title"),
-                            html.Td(f"{state_mrate_noseniors:,}%", className="state-stat-num")
-                        ])
-                    ])
-                ], className="stat-table table table-responsive"),
-
-            html.P(f"* Out of 50 States (and District of Columbia). Higher rank (closer to 1st) means higher mortality rate. Note: The state with Rank #1 is {state_top_rank} and the state with the lowest mortatlity rate is {state_bot_rank}."),
-            html.P("** Senior (65 yrs+) deaths & cases removed from pool of calculated mortality rate, leaving ages from 0 to 64."),
 
 
             html.P(className="spacer"),
