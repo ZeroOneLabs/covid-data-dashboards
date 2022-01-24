@@ -10,7 +10,11 @@ except Exception as e:
 
 
 # Variables
-pie_legend_font_config = dict(family="Courier", size=24)
 pie_graph_margins = dict(t=10, b=10, l=10, r=10)
-bar_legend_font_config = dict(family="Helvetica", size=18, color="Black")
+pie_legend_font_config = dict(size=24)
+bar_legend_font_config = dict(family="Helvetica", size=24)
 bar_graph_margins = dict(r=10)
+line_legend_font_config = dict(size=24)
+
+if __name__ == "__main__":
+    pass

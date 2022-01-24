@@ -1,14 +1,12 @@
 import os
 import json
-import sys
 from datetime import datetime
 
 import pandas as pd
 
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_table
+from dash import Dash
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
@@ -16,24 +14,28 @@ import plotly.express as px
 
 import data_writer as dw
 import shared_data as sd
-import data_downloader as dd
-import dashboard_utils as du
-
 import data_sections
 
+#TODO: Add charts that compare population density
+#TODO: Add markers for vaccine dates and/or mask mandates - perhaps make a new page for these graphs?
+#TODO: Add total death numbers for each age group and race
+#TODO: Add total death percentages for each age group and race
+#TODO: Write function to create bar and pie graphs to reduce code duplication
+#TODO: Put each major function in their own .py file to reduce clutter?
+#TODO: Remove linear and log comparisons for Hawaii, since it has no neighbors.
+# Or add neighbors with similar population density? <- YES
 
-
-today = datetime.today()
-today_str = today.strftime("%Y-%m-%d")
+today_str = datetime.today().strftime("%Y-%m-%d")
 
 html_container_list = []
 state_info_data_list = []
 
-dash_theme = dbc.themes.BOOTSTRAP
+# dash_theme = dbc.themes.BOOTSTRAP
+dash_theme = dbc.themes.DARKLY
 # dash_theme = dbc.themes.LUX
 # dash_theme = dbc.themes.CYBORG
 
-app = dash.Dash(__name__,external_stylesheets=[dash_theme])
+app = Dash(__name__,external_stylesheets=[dash_theme])
 server = app.server
 app.title="Zero One Labs - US COVID Demographic Dashboard"
 
@@ -49,8 +51,8 @@ states_totals_df = sd.states_totals_df
 # Delete regions that throw errors from the States data frame
 for drop_state in ["Northern Mariana Islands", "Virgin Islands", "Puerto Rico", "Guam"]:
     states_totals_df = states_totals_df.drop(
-            states_totals_df[states_totals_df['state'] == drop_state].index
-        )
+        states_totals_df[states_totals_df['state'] == drop_state].index
+    )
 
 try:
     with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "r") as f:
@@ -73,15 +75,7 @@ last_updated_age = pd.read_json(f"data/CDC/{today_str}-Deaths_by_Sex_and_Age.jso
 
 
 ## NATIONAL STUFF
-
-#TODO: Add total death numbers for each age group and race
-#TODO: Add total death percentages for each age group and race
-#TODO: Write function to create bar and pie graphs to reduce code duplication
-#TODO: Write function to create "National Statistics", "State Statistics" (semi-done), and "About" html element lists
-    #TODO: Put each major function in their own .py file to reduce clutter?
-
-
-national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths = 0, 0, 0, 0
+national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_adv_adult_deaths, national_senior_deaths = 0, 0, 0, 0, 0
 for state, data in json_state_file.items():
     for age_demo in data["Age"]:
         if age_demo == "50-64 years" or age_demo == "40-49 years" or age_demo == "30-39 years" or age_demo == "0-17 years" or age_demo == "18-29 years":
@@ -90,11 +84,14 @@ for state, data in json_state_file.items():
         if age_demo == "Under 1 year" or age_demo == "1-4 years" or age_demo == "5-14 years":
             national_child_deaths += data["Age"][age_demo]["total_deaths"]
 
-        if age_demo == "15-24 years" or age_demo == "25-34 years" or age_demo == "35-44 years":
+        if age_demo == "15-24 years":
             national_teenadult_deaths += data["Age"][age_demo]["total_deaths"]
+        
+        if age_demo == "25-34 years" or age_demo == "35-44 years":
+            national_adult_deaths += data["Age"][age_demo]["total_deaths"]
 
         if age_demo == "45-54 years" or age_demo == "55-64 years":
-            national_adult_deaths += data["Age"][age_demo]["total_deaths"]
+            national_adv_adult_deaths += data["Age"][age_demo]["total_deaths"]
 
         if age_demo == "65-74 years" or age_demo == "75-54 years" or age_demo == "85 years and over":
             national_senior_deaths += data["Age"][age_demo]["total_deaths"]
@@ -107,26 +104,28 @@ us_totals_mrate = round((us_totals_death / us_totals_cases) * 100, 2)
 us_totals_deaths_noseniors = us_totals_cases - national_senior_deaths
 us_totals_mrate_noseniors = round(((us_totals_death - national_senior_deaths) / us_totals_deaths_noseniors) * 100, 2)
 
-cdc_total_covid_certified_deaths = national_child_deaths + national_teenadult_deaths + national_adult_deaths + national_senior_deaths
+cdc_total_covid_certified_deaths = national_child_deaths + national_teenadult_deaths + national_adv_adult_deaths + national_senior_deaths
 
 
 # us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior
 us_total_pct_age_child_deaths = round( ( national_child_deaths / cdc_total_covid_certified_deaths ) * 100)
 us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / cdc_total_covid_certified_deaths ) * 100)
-us_total_pct_age_advadlt = round( ( national_adult_deaths / cdc_total_covid_certified_deaths ) * 100)
+us_total_pct_age_adlt = round( ( national_adult_deaths / cdc_total_covid_certified_deaths ) * 100)
+us_total_pct_age_advadlt = round( ( national_adv_adult_deaths / cdc_total_covid_certified_deaths ) * 100)
 us_total_pct_age_senior = round( ( national_senior_deaths / cdc_total_covid_certified_deaths ) * 100)
 
 # us_total_pct_age_child_deaths = round( ( national_child_deaths / us_totals_death ) * 100)
 # us_total_pct_age_teenadlt = round( ( national_teenadult_deaths / us_totals_death ) * 100)
-# us_total_pct_age_advadlt = round( ( national_adult_deaths / us_totals_death ) * 100)
+# us_total_pct_age_advadlt = round( ( national_adv_adult_deaths / us_totals_death ) * 100)
 # us_total_pct_age_senior = round( ( national_senior_deaths / us_totals_death ) * 100)
 
-# print(national_child_deaths, national_teenadult_deaths, national_adult_deaths, national_senior_deaths)
+# print(national_child_deaths, national_teenadult_deaths, national_adv_adult_deaths, national_senior_deaths)
 # print(us_total_pct_age_child_deaths, us_total_pct_age_teenadlt, us_total_pct_age_advadlt, us_total_pct_age_senior)
 
 national_total_pct_age_dict = [
         { "Age Group": "0-14", "Percent of COVID deaths (Nationally)": us_total_pct_age_child_deaths },
-        { "Age Group": "15-44", "Percent of COVID deaths (Nationally)": us_total_pct_age_teenadlt },
+        { "Age Group": "15-24", "Percent of COVID deaths (Nationally)": us_total_pct_age_teenadlt },
+        { "Age Group": "25-44", "Percent of COVID deaths (Nationally)": us_total_pct_age_adlt },
         { "Age Group": "45-64", "Percent of COVID deaths (Nationally)": us_total_pct_age_advadlt },
         { "Age Group": "65+", "Percent of COVID deaths (Nationally)": us_total_pct_age_senior },
 ]
@@ -134,29 +133,38 @@ national_total_pct_age_dict = [
 national_total_pct_age_table_dict = {
         "row0": { "values": [ "Age Range", "Total Deaths", "% of all Deaths" ], "classname": "table-data-row" },
         "row1": { "values": [ "0-14", f"{int(national_child_deaths):,}", f"{us_total_pct_age_child_deaths}%" ], "classname": "table-data-row" },
-        "row2": { "values": [ "15-44", f"{int(national_teenadult_deaths):,}", f"{us_total_pct_age_teenadlt}%"  ], "classname": "table-data-row" },
-        "row3": { "values": [ "45-64", f"{int(national_adult_deaths):,}", f"{us_total_pct_age_advadlt}%"  ], "classname": "table-data-row" },
-        "row4": { "values": [ "65+", f"{int(national_senior_deaths):,}", f"{us_total_pct_age_senior}%"  ], "classname": "table-data-row" }
+        "row2": { "values": [ "15-24", f"{int(national_teenadult_deaths):,}", f"{us_total_pct_age_teenadlt}%"  ], "classname": "table-data-row" },
+        "row3": { "values": [ "25-44", f"{int(national_adult_deaths):,}", f"{us_total_pct_age_adlt}%"  ], "classname": "table-data-row" },
+        "row4": { "values": [ "45-64", f"{int(national_adv_adult_deaths):,}", f"{us_total_pct_age_advadlt}%"  ], "classname": "table-data-row" },
+        "row5": { "values": [ "65+", f"{int(national_senior_deaths):,}", f"{us_total_pct_age_senior}%"  ], "classname": "table-data-row" }
     }
 
 
 
-def create_nat_age_death_pct_pie() -> px.pie:
-    national_total_pct_age_fig = px.pie(
-        national_total_pct_age_dict, 
-        values='Percent of COVID deaths (Nationally)', names='Age Group', 
-        color="Age Group", 
-        )
-    national_total_pct_age_fig.update_traces( textposition='inside', textinfo='percent+label', showlegend=False )
-    national_total_pct_age_fig.update_layout( font=sd.pie_legend_font_config, title=None, margin=sd.pie_graph_margins )
-
-    return national_total_pct_age_fig
+# def create_nat_age_death_pct_pie() -> px.pie:
+#     national_total_pct_age_fig = px.pie(
+#         national_total_pct_age_dict, 
+#         values='Percent of COVID deaths (Nationally)', names='Age Group', 
+#         color="Age Group"
+#     )
+#     national_total_pct_age_fig.update_traces(
+#         textposition='inside',
+#         textinfo='percent+label',
+#         showlegend=False
+#     )
+#     national_total_pct_age_fig.update_layout(
+#         font=sd.pie_legend_font_config,
+#         title=None,
+#         margin=sd.pie_graph_margins,
+#         template="plotly_dark"
+#     )
+#     return national_total_pct_age_fig
 
 
 
 us_population = state_population_info['national']['US']['pop']
 
-us_percent_infected = round((us_totals_cases / us_population) * 100 ,2)
+us_percent_infected = round((us_totals_cases / us_population) * 100 ,0)
 us_percent_killed = round((us_totals_death / us_population) * 100 ,2)
 
 
@@ -175,12 +183,14 @@ for letter in alphabet_upper:
     letter_list = [html.Span(letter + " - ", className="state-letter-item")]
     state_append_count = 0
     for state in state_name_list:
+        if state == "American Samoa" or state == "District of Columbia":
+            continue
         if state.startswith(letter):
             letter_list.append(html.A([state], href="/state/" + state, className="state_link"))
             state_append_count += 1
 
     if state_append_count > 0:
-        state_name_link_html_list.append( html.Li(letter_list) )
+        state_name_link_html_list.append( html.Li(letter_list, className="state-picker-li") )
 
 
 
@@ -280,20 +290,22 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div([
         html.Div([
-                html.H1("US COVID Statistics", className="main-header"),
-                html.H2("[ Age and Race ]", className="main-subheader"),
-                html.H3("Developed by Zero One Labs", className="main-domsubheader"),
-                html.P(className="spacer"),
-                html.Div([
-                    html.A("National", href="/stats/national"),
-                    html.Span("•"),
-                    html.A("State", href="/stats/state"),
-                    html.Span("•"),
-                    html.A("Data Tables", href="/stats/tables"),
-                    html.Span("•"),
-                    html.A("About", href="/about"),
-                ], className="header-links")
-        ], id="header", className="header"),
+            html.H1("US COVID Statistics", className="site-title center-center"),
+            html.H2("[ Age and Race ]", className="site-subtitle center-center"),
+            html.H3("Developed by Zero One Labs", className="main-createdby center-center"),
+            html.P(className="spacer"),
+            html.Div([
+                html.A("National", href="/stats/national"),
+                html.Span("•"),
+                html.A("State", href="/stats/state"),
+                html.Span("•"),
+                html.A("Data Tables", href="/stats/tables"),
+                html.Span("•"),
+                html.A("About", href="/about")],
+                className="header-links"
+            )],
+            id="header", className="header"
+        ),
 
         # This is where we display main content above graphs
         html.Div([
@@ -307,8 +319,6 @@ app.layout = html.Div([
             ),
 
         ]),
-
-
 
         html.Div(
             data_sections.get_footer(last_updated_race, last_updated_age), 
@@ -366,7 +376,7 @@ def update_figure(pathname: None):
                 return data_sections.get_state_picker(state_name_link_html_list)
 
             if url_path_two == "tables":
-                return data_sections.get_data_tables(state_table_dict_df, state_table_age_dict_df, state_table_race_dict_df, state_population_info)
+                return data_sections.get_data_tables(state_table_dict_df, state_table_age_dict_df, state_table_race_dict_df)
 
 
             if url_path_two == "":
@@ -398,9 +408,9 @@ def update_figure(pathname: None):
 
 
 if __name__ == '__main__':
-    # app.run_server(debug=True,host=os.getenv('HOST','192.168.0.0')) # Use for testing
+    app.run_server(debug=True,host=os.getenv('HOST','192.168.1.68')) # Use for testing
     # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
-    app.run_server(debug=False) # Use for production
+    # app.run_server(debug=False) # Use for production
 
 
 

@@ -1,95 +1,373 @@
 
+:root {
+    --fs-site-title: 3.8em;
+    --fs-site-subtitle: 2.3em;
+    --fs-created-by: 1.2em;
+    --fs-header-links: 1.2em;
+    --fs-page-title: 3.2em;
 
-body {
-    background-color: rgb(106, 106, 106);
-    /* font-family:Arial, 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; */
+    --fs-h1: 3.2rem;
+    --fs-h2: 2.7rem;
+    --fs-h3: 2.5rem;
+    --fs-h4: 2.0rem;
+    --fs-table: 1em;
+
+    --fs-xxl: 3.2rem;
+    --fs-600: 1.6rem;
+    --fs-500: 1.2rem;
+    --fs-400: 20px;
+    --fs-300: 0.8rem;
+    --fs-200: 0.6rem;
+    
+    --fs-body: 1em;
+
+    /* header */
+    --head-marg-bot: 80px;
+    --head-pad: 40px 0;
+    --head-a-pad: 4px 14px;
+    --head-a-mwidth: fit-content;
+    --head-a-width: none;
+
+
+    /* state links */
+    --fs-state-link: 1.2em;
+    --pad-state-link: 10px 10px;
+    --marg-state-link:5 px 10px;
+    --fs-state-letter-item: 1.6em;
+
+
+    --w-container: 80%;
+
+}
+
+
+/**
+ * ------------------------------------------
+ *  Responsive Grid Media Queries - 1280, 1024, 768, 480
+ *   1280-1024   - desktop (default grid)
+ *   1024-768    - tablet landscape
+ *   768-480     - tablet 
+ *   480-less    - phone landscape & smaller
+ * --------------------------------------------
+ */
+@media all and (min-width: 1024px) and (max-width: 1280px) {
+    :root {
+        --w-container: 100%;
+    }
+}
+
+@media all and (min-width: 768px) and (max-width: 1024px) {
+    :root {
+        --fs-site-title: 3.8em;
+        --fs-site-subtitle: 2.3em;
+        --fs-created-by: 1.2em;
+        --fs-header-links: 1.8em;
+        --fs-page-title: 3em;
+    
+        --fs-h1: 2rem;
+        --fs-h2: 2.2rem;
+        --fs-h3: 2.5rem;
+        --fs-h4: 2.0rem;
+        --fs-table: 1em;
+
+        --fs-xxl: 3.2rem;
+        --fs-600: 1.3em;
+        --fs-500: 1.2em;
+        --fs-400: 14px;
+        --fs-300: 0.8rem;
+        --fs-200: 0.6rem;
+
+        --fs-body: 1em;
+
+        --w-container: 100%;
+
+        /* header */
+        --head-marg-bot: 10px;
+        --head-pad: 10px 0;
+        --head-a-pad: 4px 20px;
+        --head-a-mwidth: none;
+        --head-a-width: 80%;
+    
+        --fs-state-letter-item: 2.4em;
+
+        /* state links */
+        --fs-state-link: 2em;
+        --pad-state-link: 5px 5px;
+        --marg-state-link: 5px 5px;
+
+
+    }
+}
+
+@media all and (min-width: 480px) and (max-width: 768px) {
+    :root {
+        --fs-site-title: 3.8em;
+        --fs-site-subtitle: 2.3em;
+        --fs-created-by: 1.2em;
+        --fs-header-links: 1.4em;
+        --fs-page-title: 3em;
+    
+        --fs-h1: 2rem;
+        --fs-h2: 2.2rem;
+        --fs-h3: 2.5rem;
+        --fs-h4: 2.0rem;
+        --fs-table: 1em;
+
+        --fs-xxl: 3.2rem;
+        --fs-600: 1.3em;
+        --fs-500: 1.2em;
+        --fs-400: 14px;
+        --fs-300: 0.8rem;
+        --fs-200: 0.6rem;
+
+        --fs-body: 1em;
+
+        --w-container: 100%;
+
+        /* header */
+        --head-marg-bot: 10px;
+        --head-pad: 10px 0;
+        --head-a-pad: 4px 10px;
+        --head-a-mwidth: none;
+        --head-a-width: 100%;
+    
+        --fs-state-letter-item: 2.4em;
+
+        /* state links */
+        --fs-state-link: 1em;
+        --pad-state-link: 5px 5px;
+        --marg-state-link: 5px 5px;
+    }
+}
+
+@media all and (max-width: 480px) {
+    :root {
+        --fs-site-title: 2em;
+        --fs-site-subtitle: 1.2em;
+        --fs-created-by: 0.6em;
+        --fs-header-links: 1em;
+        --fs-page-title: 2em;
+    
+        --fs-h1: 2rem;
+        --fs-h2: 2.2rem;
+        --fs-h3: 2.5rem;
+        --fs-h4: 2.0rem;
+        --fs-table: 1em;
+    
+        --fs-xxl: 3.2rem;
+        --fs-600: 1.3em;
+        --fs-500: 1.2em;
+        --fs-400: 14px;
+        --fs-300: 0.8rem;
+        --fs-200: 0.6rem;
+
+        --fs-body: 1em;
+
+        --w-container: 100%;
+
+        /* header */
+        --head-marg-bot: 10px;
+        --head-pad: 10px 0;
+        --head-a-pad: 4px 10px;
+        --head-a-mwidth: fit-content;
+        --head-a-width: none;
+    
+        --fs-state-letter-item: 2.4em;
+
+        /* state links */
+        --fs-state-link: 1em;
+        --pad-state-link: 5px 5px;
+        --marg-state-link: 5px 5px;
+
+
+    }
+}
+
+
+/* Portrait */  /* Android phone */
+@media screen and (orientation:portrait) and (hover: none) and (pointer: coarse) {
+    /* Portrait styles here */
+    :root {
+        --fs-site-title: 6em;
+        --fs-site-subtitle: 3.5em;
+        --fs-created-by: 0.6em;
+        --fs-header-links: 2em;
+        --fs-page-title: 5em;
+    
+        --fs-h1: 4.5rem;
+        --fs-h2: 4rem;
+        --fs-h3: 3.5rem;
+        --fs-h4: 2.0rem;
+        --fs-table: 1em;
+    
+        --fs-xxl: 3.5rem;
+        --fs-600: 2.25rem;
+        --fs-500: 1.75rem;
+        --fs-400: 16px;
+        --fs-300: 0.8rem;
+        --fs-200: 0.6rem;
+
+        --fs-body: 1em;
+
+        --w-container: 100%;
+
+        /* header */
+        --head-marg-bot: 10px;
+        --head-pad: 10px 0;
+        --head-a-pad: 4px 15px;
+        --head-a-mwidth: none;
+        --head-a-width: 100%;
+    
+        --fs-state-letter-item: 3.5em;
+
+        /* state links */
+        --fs-state-link: 3em;
+        --pad-state-link: 5px 15px;
+        --marg-state-link: 5px 5px;
+
+    }
+}
+
+/* Landscape */
+@media screen and (orientation: landscape) and (hover: none) and (pointer: coarse) {
+    /* Landscape styles here */
+    :root {
+        --w-container: 100%;
+    }
+}
+
+
+/* CSS for iPhone, iPad, and Retina Displays */
+
+/* Non-Retina */
+@media screen and (-webkit-max-device-pixel-ratio: 1) {
+    /* :root {
+        --w-container: 100%;
+    } */
+}
+
+/* Retina */
+@media only screen and (-webkit-min-device-pixel-ratio: 1.5),
+only screen and (-o-min-device-pixel-ratio: 3/2),
+only screen and (min--moz-device-pixel-ratio: 1.5),
+only screen and (min-device-pixel-ratio: 1.5) {
+    /* :root {
+        --w-container: 100%;
+    } */
+}
+
+/* iPhone Portrait */
+@media screen and (max-device-width: 480px) and (orientation:portrait) {
+    /* :root {
+        --w-container: 100%;
+    } */
+}
+
+/* iPhone Landscape */
+@media screen and (max-device-width: 480px) and (orientation:landscape) {
+    /* :root {
+        --w-container: 100%;
+    } */
+}
+
+/* iPad Portrait */
+@media screen and (min-device-width: 481px) and (orientation:portrait) {
+    /* :root {
+        --w-container: 100%;
+    } */
+}
+
+/* iPad Landscape */
+@media screen and (min-device-width: 481px) and (orientation:landscape) {
+    /* :root {
+        --w-container: 100%;
+    } */
+}
+
+p, span {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--fs-400);
+}
+
+.section-div p, .section-div span, .section-div {
+    font-size: var(--fs-600) !important;
+}
+
+table, .table, .table-responsive, td, tr, th {
+    font-size: var(--fs-table) !important;
 }
 
 div#container {
-    background-color: rgb(247, 246, 246)!important;
-    padding: 0 10%;
+    width: var(--w-container);
 }
-
 
 strong {
     font-weight: 800;
 }
+h1 {
+    font-size: var(--fs-h1);
+}
+h2 {
+    font-size: var(--fs-h2);
+    margin-bottom: 1rem;
+}
+h3 {
+    font-size: var(--fs-h3);
+}
+h4 {
+    font-size: var(--fs-h4);
+}
+
+.center-center {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.site-title {
+    font-size: var(--fs-site-title);
+}
+.site-subtitle {
+    font-size: var(--fs-site-subtitle);
+}
+.main-createdby {
+    font-size: var(--fs-created-by);
+}
+/* title under site-subtitle, e.g. "US Statistics" or "State_Name" or "Choose a State" */
+.page-title {
+    font-size: var(--fs-page-title);
+}
 
 #header {
-    padding: 80px 0;
-    margin-bottom: 80px;
-}
-.main-header, .main-subheader, .main-domsubheader, .main-subsubheader {
-    margin: 0 auto;
-    text-align: center;
-}
-.main-header {
-    font-size: 4.5em;
-}
-.main-subheader {
-    font-size: 3em;
-}
-.main-subsubheader {
-    font-size: 2em;
-}
-
-.main-domsubheader {
-    font-size: 1em;
+    padding: 40px 0;
+    margin-bottom: var(--head-marg-bot);
 }
 div.header-links {
-    margin-left: auto;
-    margin-right: auto;
+    margin: 20px auto 2px auto;
     text-align: center;
     vertical-align: middle !important;
-    margin-top: 20px;
     border-top: thin solid grey;
     border-bottom: thin solid grey;
-    width: 60%;
+    max-width: var(--head-a-mwidth);
+    width: var(--head-a-width);
 }
+
 div.header-links a {
     margin-top: 10px;
-    padding: 4px 15px;
-    font-size: 1.2em;
-}
-
-*[data-dash-is-loading="true"]{
-    visibility: hidden;
-}
-*[data-dash-is-loading="true"]::before{
-    content: "Loading...";
-    font-size: 2.5em;
-    text-align: center;
-    display: block;
-    margin: 0 auto;
-    color: rgb(0, 0, 0);
-    visibility: visible;
+    padding: var(--head-a-pad);
+    font-size: var( --fs-header-links );
 }
 
 
-
-#state-info-list {
-    width: 100%;
+.bar {
+    width: 69%;
 }
-.row {
-    content: "";
-    display: flex;
-    clear: both;
-    margin-left: -12%;
-    margin-right: -13%;
-    /* margin-left: -15%;
-    margin-right: -16%; */
+.pie {
+    width: 30%;
 }
-
-.bar { 
-    width: 69%; 
+.chart {
+    border: thin solid grey;
+    /* font-size:var(--fs-600); */
 }
-.pie { 
-    width: 30%; 
-}
-
-
-
-
 .figure {
     border: darkgray thin solid;
 }
@@ -100,46 +378,120 @@ hr {
 }
 
 
-.dropdown-container {
+
+.nat-stat-center {
+    font-size: 2em;
+}
+
+.colon-align div {
     display: flex;
-    margin-top: 10px;
+}
+
+.colon-align div span {
+    flex: 1;
+}
+.colon-align div span:first-of-type {
+    text-align: right;
+    padding-right: 0.5rem;
+}
+.colon-align div span:last-of-type {
+    text-align: left;
+    padding-left: 1rem;
+}
+
+.color-courier {
+    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+    color: #d63384;
+    font-weight: 300;
+}
+
+.stat-table {
+    font-family: Tahoma, Verdana, Goergia;
+    /* font-size: 1em; */
+    width: fit-content;
+}
+
+.nat-stat-num {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 800;
 }
 
 
-.state-vlabel {
-    float: left;
-}
 
 
-.state-dropdown {
+.state-link-list {
     width: 100%;
-    margin-bottom: 20px;
+    /* font-size: large; */
+    display: block;
+    word-break: break-all;
 }
 
-
-.label-dropdown-container {
-    width: 200px;
-    margin-right: 30px;
+.state_link {
+    font-size: var(--fs-state-link);
+    margin: var(--marg-state-link);
+    padding: var(--pad-state-link);
+    border: thin solid grey;
+    display: inline-block;
 }
 
+.state-letter-item {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: var(--fs-state-letter-item);
+    font-weight: 600;
+}
+
+.not-allowed {
+    text-align: center;
+    margin: 0 auto;
+    width: 100%;
+    display: block;
+}
+
+p.spacer {
+    height: 20px;
+    width: 100%;
+}
 
 .footer {
     display: block;
     margin-top: 100px;
-    background-color: rgb(237, 237, 237);
     margin-left: -20px;
     padding-left: 20px;
     margin-right: -20px;
     padding-right: 20px;
 }
+
 .footer-spacer {
     display: block;
     height: 1000px;
 }
 
+
+@media print {
+    div {
+        page-break-inside: avoid;
+    }
+}
+
+
+/* Pertinent to Plotly/Dash */
+*[data-dash-is-loading="true"] {
+    visibility: hidden;
+}
+
+*[data-dash-is-loading="true"]::before {
+    content: "Loading...";
+    font-size: 2.5em;
+    text-align: center;
+    display: block;
+    margin: 0 auto;
+    color: rgb(0, 0, 0);
+    visibility: visible;
+}
+
 span.column-header--sort {
     display: block;
-    background-color: rgb(234, 243, 254);
+    /* background-color: rgb(234, 243, 254); */
     width: 100%;
 }
 
@@ -149,97 +501,9 @@ span.column-header-name {
 }
 
 
-.stat-table  {
-    font-family: Tahoma, Verdana, Goergia;
-    font-size: 2em;
-}
-
-.stat-table th {
-    font-size: 0.5em;
-}
-
-.chart {
-    border: thin solid grey;
-}
-
-p.spacer {
-    height: 20px;
-    width: 100%;
-}
-
-@media print  
-{
-    div{
-        page-break-inside: avoid;
-    }
-}
-
-
-.big-container {
-    background-color: #fff;
-    padding: 1em ;
-}
-
-
-.dropdown-picker-cell {
-    width: 100%;
-}
-
-
-.dropdown-picker-cell:first-child {
-    max-width: 50%;
-}
-
-#purpose-title {
-    cursor: pointer;
-    display: inline-block;
-    /* float: none; */
-    padding: 5px;
-    overflow: auto;
-    margin-top: -10px;
-    border: thin solid lightgray;
-
-}
-
-.state_title {
-    text-decoration: underline;
-}
-
-/* #purpose-div {
-    display: none;
-} */
-
-.state-picker-row {
-    /* margin: 10px 0 30px 10px; */
-    width: 100%;
-}
-
-.state-link-list {
-    width: 100%;
-    font-size: large;
-    /* border: red thin solid; */
+#dev-info {
     display: block;
-    word-break: break-all;
-}
-
-.state_link {
-    font-size: 1.5em;
-    margin: 5px 10px;
-    padding: 10px 10px;
-    border: thin solid grey;
-    background-color:rgb(255, 250, 250);
-    display: inline-block;
-}
-
-.state-letter-item {
-    font-family:'Courier New', Courier, monospace;
-    font-size: 1.25em;
-    font-weight: 600;
-}
-
-.not-allowed {
-    text-align: center;
-    margin: 0 auto;
-    width: 100%;
-    display: block;
+    width: 980px !important;
+    border-bottom:rgb(234, 243, 254);
+    background-color: rosybrown;
 }
