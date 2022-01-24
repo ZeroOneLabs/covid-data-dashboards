@@ -408,9 +408,9 @@ def update_figure(pathname: None):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True,host=os.getenv('HOST','192.168.1.68')) # Use for testing
+    # app.run_server(debug=True,host=os.getenv('HOST','192.168.x.x')) # Use for testing
     # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
-    # app.run_server(debug=False) # Use for production
+    app.run_server(debug=False) # Use for production
 
 
 
