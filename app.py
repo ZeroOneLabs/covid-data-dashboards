@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import os
 
 import pandas as pd
 
@@ -15,12 +16,19 @@ import data_writer as dw
 import shared_data as sd
 import data_sections
 
+#TODO: Revise main page. Include questions like
+# "Have you ever wondered how many children (0-12) have died from COVID?"
+# "What about the average survival rate? Or how many Black people died from COVID in Illinois?"
+
+#TODO: Make graphic of tallying up COVID deaths from CDC data?
+#TODO: Add population density to each state.
+
 #TODO: Add charts that compare population density
 #TODO: Add markers for vaccine dates and/or mask mandates - perhaps make a new page for these graphs?
-#TODO: Add total death numbers for each age group and race
+#TODO: Add total death numbers for each age group and race - done-ish for National section.
 #TODO: Add total death percentages for each age group and race
-#TODO: Write function to create bar and pie graphs to reduce code duplication
-#TODO: Put each major function in their own .py file to reduce clutter?
+#TODO: Write function to create bar and pie graphs to reduce code duplication - meh. Low-tier.
+#TODO: Put each major function in their own .py file to reduce clutter? - Low-tier.
 #TODO: Remove linear and log comparisons for Hawaii, since it has no neighbors.
 # Or add neighbors with similar population density? <- YES
 
@@ -407,7 +415,7 @@ def update_figure(pathname: None):
 
 
 if __name__ == '__main__':
-    # app.run_server(debug=True,host=os.getenv('HOST','192.168.x.x')) # Use for testing
+    # app.run_server(debug=True,host=os.getenv('HOST','192.168.1.68')) # Use for testing
     # app.run_server(debug=True,host=os.getenv('HOST','127.0.0.1')) # Use for testing
     app.run_server(debug=False) # Use for production
 

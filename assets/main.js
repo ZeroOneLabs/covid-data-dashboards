@@ -23,16 +23,15 @@ function main_looper() {
         sectionDivs[i].style.minHeight = `${section_height}px`;
     }
 
-    // Populate dev tool area
+    // Uncomment to populate dev tool area
     try {
         var devinfo = document.getElementById('dev-info');
         var devinfo_text = "Viewport dimensions: " + viewportWidth + " x " + viewportHeight;
-        // console.log(devinfo_text);
         devinfo.textContent = devinfo_text;
+        devinfo.style.display = block;
     } catch (error) {
-        // console.log("Hasn't loaded yet.")
+        console.log(error);
     }
-
 
 
     setTimeout(main_looper, 500);

@@ -28,6 +28,9 @@
     --head-a-mwidth: fit-content;
     --head-a-width: none;
 
+    /* paragraphs */
+    --p-marg-bot: 30px;
+
 
     /* state links */
     --fs-state-link: 1.2em;
@@ -40,16 +43,6 @@
 
 }
 
-
-/**
- * ------------------------------------------
- *  Responsive Grid Media Queries - 1280, 1024, 768, 480
- *   1280-1024   - desktop (default grid)
- *   1024-768    - tablet landscape
- *   768-480     - tablet 
- *   480-less    - phone landscape & smaller
- * --------------------------------------------
- */
 @media all and (min-width: 1024px) and (max-width: 1280px) {
     :root {
         --w-container: 100%;
@@ -62,7 +55,7 @@
         --fs-site-subtitle: 2.3em;
         --fs-created-by: 1.2em;
         --fs-header-links: 1.8em;
-        --fs-page-title: 3em;
+        --fs-page-title: 2em;
     
         --fs-h1: 2rem;
         --fs-h2: 2.2rem;
@@ -70,10 +63,10 @@
         --fs-h4: 2.0rem;
         --fs-table: 1em;
 
-        --fs-xxl: 3.2rem;
+        --fs-xxl: 3.2em;
         --fs-600: 1.3em;
         --fs-500: 1.2em;
-        --fs-400: 14px;
+        --fs-400: 18px;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
@@ -101,11 +94,11 @@
 
 @media all and (min-width: 480px) and (max-width: 768px) {
     :root {
-        --fs-site-title: 3.8em;
-        --fs-site-subtitle: 2.3em;
-        --fs-created-by: 1.2em;
+        --fs-site-title: 2.8em;
+        --fs-site-subtitle: 2em;
+        --fs-created-by: 1em;
         --fs-header-links: 1.4em;
-        --fs-page-title: 3em;
+        --fs-page-title: 2em;
     
         --fs-h1: 2rem;
         --fs-h2: 2.2rem;
@@ -116,7 +109,7 @@
         --fs-xxl: 3.2rem;
         --fs-600: 1.3em;
         --fs-500: 1.2em;
-        --fs-400: 14px;
+        --fs-400: 18px;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
@@ -145,7 +138,7 @@
         --fs-site-title: 2em;
         --fs-site-subtitle: 1.2em;
         --fs-created-by: 0.6em;
-        --fs-header-links: 1em;
+        --fs-header-links: 1.4em;
         --fs-page-title: 2em;
     
         --fs-h1: 2rem;
@@ -154,10 +147,10 @@
         --fs-h4: 2.0rem;
         --fs-table: 1em;
     
-        --fs-xxl: 3.2rem;
+        --fs-xxl: 3.2em;
         --fs-600: 1.3em;
         --fs-500: 1.2em;
-        --fs-400: 14px;
+        --fs-400: 18px;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
@@ -169,8 +162,8 @@
         --head-marg-bot: 10px;
         --head-pad: 10px 0;
         --head-a-pad: 4px 10px;
-        --head-a-mwidth: fit-content;
-        --head-a-width: none;
+        --head-a-mwidth: none;
+        --head-a-width: 100%;
     
         --fs-state-letter-item: 2.4em;
 
@@ -188,7 +181,7 @@
 @media screen and (orientation:portrait) and (hover: none) and (pointer: coarse) {
     /* Portrait styles here */
     :root {
-        --fs-site-title: 6em;
+        --fs-site-title: 4em;
         --fs-site-subtitle: 3.5em;
         --fs-created-by: 0.6em;
         --fs-header-links: 2em;
@@ -288,9 +281,12 @@ p, span {
     font-family: Arial, Helvetica, sans-serif;
     font-size: var(--fs-400);
 }
+p {
+    margin-bottom: var(--p-marg-bot);
+}
 
 .section-div p, .section-div span, .section-div {
-    font-size: var(--fs-600) !important;
+    font-size: var(--fs-400) !important;
 }
 
 table, .table, .table-responsive, td, tr, th {
