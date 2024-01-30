@@ -9,3 +9,5 @@ data/NYT
 data/ZeroOneLabs
 playground.ipynb
 *.psd
+xfiles/
+.vscode/

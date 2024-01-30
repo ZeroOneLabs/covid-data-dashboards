@@ -24,14 +24,14 @@ function main_looper() {
     }
 
     // Uncomment to populate dev tool area
-    try {
-        var devinfo = document.getElementById('dev-info');
-        var devinfo_text = "Viewport dimensions: " + viewportWidth + " x " + viewportHeight;
-        devinfo.textContent = devinfo_text;
-        devinfo.style.display = block;
-    } catch (error) {
-        console.log(error);
-    }
+    // try {
+    //     var devinfo = document.getElementById('dev-info');
+    //     var devinfo_text = "Viewport dimensions: " + viewportWidth + " x " + viewportHeight;
+    //     devinfo.textContent = devinfo_text;
+    //     devinfo.style.display = block;
+    // } catch (error) {
+    //     console.log(error);
+    // }
 
 
     setTimeout(main_looper, 500);
