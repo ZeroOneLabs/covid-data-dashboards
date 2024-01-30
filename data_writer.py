@@ -1,9 +1,17 @@
-import json
 import os
+import json
+import logging
 import pandas as pd
 from datetime import datetime
 
 import data_downloader as dd
+
+logging.basicConfig(
+    format='%(asctime)s-%(levelname)s-%(filename)s-lineno_%(lineno)dx:%(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+    encoding='utf-8',
+    level=logging.DEBUG
+)
 
 def write_data():
 
@@ -40,7 +48,7 @@ def write_data():
     # state_age_info_df = pd.read_json("data/state_info.json")
 
     with open("data/state_info.json") as j:
-        state_age_info_df = json.load(j)
+        state_pop_info = json.load(j)
 
     demo_age = [ "Under 1 year", "0-17 years", "1-4 years", "5-14 years", "15-24 years", "18-29 years", "25-34 years", "30-39 years", "35-44 years", "40-49 years", "45-54 years", "50-64 years", "55-64 years", "65-74 years", "75-84 years", "85 years and over" ]
     demo_sex = [ "Male", "Female" ]
@@ -48,7 +56,7 @@ def write_data():
 
 
     parent_dict = { }
-    for st, state in state_age_info_df["states"].items():
+    for st, state in state_pop_info["states"].items():
         state_name = state["long"]
         if state_name == "Northern Mariana Islands" or state_name == "Virgin Islands" or state_name == "Puerto Rico":
             continue
@@ -94,31 +102,29 @@ def write_data():
         try:
             race_death = race_demo_df.loc[race_demo_df["state"] == state_name]
         except:
-            print("Error getting race_death: ")
+            logging.ERROR("Error getting race_death.")
             continue
 
 
         race_dict = {}
         for race, desc in demo_races.items():
-
+        
             try:
                 race_death = race_demo_df.loc[race_demo_df["state"] == state_name][desc].values[0]
                 race_pct_of_covid_deaths = round((race_death / state_death) * 100, 2)
                 if race not in race_dict:
                     race_dict[race] = {}
             except:
+                logging.ERROR(f"Error locating race demo for {state_name}. Continuing...")
                 continue
-
+        
             race_dict[race]["death"] = race_death
             race_dict[race]["pct_covid_deaths"] = race_pct_of_covid_deaths
 
 
         parent_dict[state_name]["Race"] = race_dict
-        # break
 
-    ## TODO: Write function to load this data into a variable from an import/external reference clause.
-    # print(parent_dict)
-    with open("data/ZeroOneLabs/" + today_str + "_demo_data.json", "w") as d:
+    with open(f"data/ZeroOneLabs/{today_str}_demo_data.json", "w") as d:
         json.dump(parent_dict, d)
 
 

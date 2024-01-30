@@ -8,7 +8,6 @@ from datetime import datetime
 
 base_dir = os.path.dirname(os.path.realpath(__file__))
 
-# String object
 today_str = datetime.strftime(datetime.today(), "%Y-%m-%d")
 # Datetime object created from a format to eliminate hours, minutes, seconds, miliseconds.
 today_obj = datetime.strptime(today_str, "%Y-%m-%d")
@@ -19,9 +18,7 @@ today_obj = datetime.strptime(today_str, "%Y-%m-%d")
 data_dir_names = [ "CDC", "NYT", "ZeroOneLabs" ]
 
 for dir_name in data_dir_names:
-
     dir = os.path.join(base_dir, f"data/{dir_name}")
-
     if not os.path.exists(dir):
         try:
             os.mkdir(dir)
@@ -29,11 +26,9 @@ for dir_name in data_dir_names:
             print(f"There was an error creating the directory: {dir}")
 
 
-
 def download_file(url, path):
 
-    print(f"Downloading file [{url}] to local path [{path}]")
-
+    # print(f"Downloading file [{url}] to local path [{path}]")
     try:
         urllib.request.urlretrieve(url, path)
     except Exception as e:
@@ -44,15 +39,11 @@ def download_cdc_data():
     cdc_data_path = os.path.join(base_dir, "data/CDC")
 
     race_date_url = "https://data.cdc.gov/resource/pj7m-y5uh.json?$order=end_week%20DESC"
+    # age_date_url format: yyyy-mm-ddT00:00:00.000
     age_date_url = "https://data.cdc.gov/api/id/9bhg-hcku.json?$order=end_date%20DESC"
 
-    latest_date_str_race = requests.get(race_date_url).text
-    latest_date_str_race = json.loads(latest_date_str_race)
-    latest_date_str_race = latest_date_str_race[0]["end_week"]
-
-    latest_date_str_age = requests.get(age_date_url).text
-    latest_date_str_age = json.loads(latest_date_str_age)
-    latest_date_str_age = latest_date_str_age[0]["end_date"]
+    # latest_date_str_race = json.loads(requests.get(race_date_url).text)[0]["end_week"]
+    latest_date_str_age = json.loads(requests.get(age_date_url).text)[0]["end_date"]
 
     cdc_file_names = {
         "Deaths_by_Race_and_Hispanic_Origin": f"https://data.cdc.gov/resource/pj7m-y5uh.json?end_week={latest_date_str_age}&start_week=2020-01-01T00:00:00.000",
@@ -66,7 +57,6 @@ def download_cdc_data():
             download_file(url, filepath)
 
 
-
 def download_nyt_data():
     data_dir = os.path.join(base_dir, "data/NYT")
 
@@ -75,17 +65,9 @@ def download_nyt_data():
     base_url = "https://raw.githubusercontent.com/nytimes/covid-19-data/master/"
     live_url = f"{base_url}live/"
 
-
-    states_latest_csv_name = "us-states-latest.csv"
-    counties_latest_csv_name = "us-counties-latest.csv"
-    us_latest_csv_name = "us-latest.csv"
-
-    states_historical_csv_name = "us-states-historical.csv"
-    counties_historical_csv_name = "us-counties-historical.csv"
-    us_historical_csv_name = "us-historical.csv"
-
-    data_file_list = [ states_latest_csv_name, counties_latest_csv_name, us_latest_csv_name, states_historical_csv_name, counties_historical_csv_name, us_historical_csv_name ]
-
+    # The reason I set up these file names in a dict like this,
+    # is because NYT has the same file names for both their 
+    # historical and "live" (totals) data, which is annoying.
     data_file_dict = {
         'us-states': {
             'remote_name': 'us-states.csv',
@@ -110,14 +92,9 @@ def download_nyt_data():
         # store the dict in a short variable for clean reading
         item = data_file_dict[csv_file]
 
-        # I originally had 'if statements' and variables duplicated. Figured, why not a for-loop?
         for thefile in [ item['local_name_latest'], item['local_name_historical'] ]:
-            # for the file in [ 'us-latest.csv', 'us-historical.csv' ]
-
-            if thefile == item['local_name_latest']:
-                remote_url = live_url
-            else:
-                remote_url = base_url
+            
+            remote_url = live_url if thefile == item['local_name_latest'] else base_url
 
             # Store temp variables to 
             tmp_local_file = os.path.join(data_dir, thefile)
@@ -139,6 +116,7 @@ def download_nyt_data():
                 # print(f"Downloading from {url} to {tmp_local_file}.")
                 download_file(url, tmp_local_file)
                 ## TODO add funtion to back up previous downloads and g-zip them so we can audit data for integrity later if needed?
+
 
 if __name__ == "__main__":
     download_nyt_data()

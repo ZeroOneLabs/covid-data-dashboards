@@ -1,10 +1,10 @@
 
 :root {
-    --fs-site-title: 3.8em;
-    --fs-site-subtitle: 2.3em;
-    --fs-created-by: 1.2em;
-    --fs-header-links: 1.2em;
-    --fs-page-title: 3.2em;
+    --fs-site-title: 3.8rem;
+    --fs-site-subtitle: 2.3rem;
+    --fs-created-by: 1.2rem;
+    --fs-header-links: 1.2rem;
+    --fs-page-title: 3.2rem;
 
     --fs-h1: 3.2rem;
     --fs-h2: 2.7rem;
@@ -15,11 +15,11 @@
     --fs-xxl: 3.2rem;
     --fs-600: 1.6rem;
     --fs-500: 1.2rem;
-    --fs-400: 20px;
+    --fs-400: 14px;
     --fs-300: 0.8rem;
     --fs-200: 0.6rem;
     
-    --fs-body: 1em;
+    --fs-body: 1rem;
 
     /* header */
     --head-marg-bot: 80px;
@@ -51,26 +51,26 @@
 
 @media all and (min-width: 768px) and (max-width: 1024px) {
     :root {
-        --fs-site-title: 3.8em;
-        --fs-site-subtitle: 2.3em;
-        --fs-created-by: 1.2em;
-        --fs-header-links: 1.8em;
-        --fs-page-title: 2em;
+        --fs-site-title: 3.8rem;
+        --fs-site-subtitle: 2.3rem;
+        --fs-created-by: 1.2rem;
+        --fs-header-links: 1.8rem;
+        --fs-page-title: 2rem;
     
         --fs-h1: 2rem;
         --fs-h2: 2.2rem;
         --fs-h3: 2.5rem;
         --fs-h4: 2.0rem;
-        --fs-table: 1em;
+        --fs-table: 1rem;
 
-        --fs-xxl: 3.2em;
-        --fs-600: 1.3em;
-        --fs-500: 1.2em;
+        --fs-xxl: 3.2rem;
+        --fs-600: 1.3rem;
+        --fs-500: 1.2rem;
         --fs-400: 18px;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
-        --fs-body: 1em;
+        --fs-body: 1rem;
 
         --w-container: 100%;
 
@@ -84,7 +84,7 @@
         --fs-state-letter-item: 2.4em;
 
         /* state links */
-        --fs-state-link: 2em;
+        --fs-state-link: 2rem;
         --pad-state-link: 5px 5px;
         --marg-state-link: 5px 5px;
 
@@ -94,26 +94,26 @@
 
 @media all and (min-width: 480px) and (max-width: 768px) {
     :root {
-        --fs-site-title: 2.8em;
-        --fs-site-subtitle: 2em;
-        --fs-created-by: 1em;
-        --fs-header-links: 1.4em;
-        --fs-page-title: 2em;
+        --fs-site-title: 2.8rem;
+        --fs-site-subtitle: 2rem;
+        --fs-created-by: 1rem;
+        --fs-header-links: 1.4rem;
+        --fs-page-title: 2rem;
     
         --fs-h1: 2rem;
         --fs-h2: 2.2rem;
         --fs-h3: 2.5rem;
         --fs-h4: 2.0rem;
-        --fs-table: 1em;
+        --fs-table: 1rem;
 
         --fs-xxl: 3.2rem;
-        --fs-600: 1.3em;
-        --fs-500: 1.2em;
+        --fs-600: 1.3rem;
+        --fs-500: 1.2rem;
         --fs-400: 18px;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
-        --fs-body: 1em;
+        --fs-body: 1rem;
 
         --w-container: 100%;
 
@@ -124,7 +124,7 @@
         --head-a-mwidth: none;
         --head-a-width: 100%;
     
-        --fs-state-letter-item: 2.4em;
+        --fs-state-letter-item: 2.4rem;
 
         /* state links */
         --fs-state-link: 1em;
@@ -135,26 +135,26 @@
 
 @media all and (max-width: 480px) {
     :root {
-        --fs-site-title: 2em;
-        --fs-site-subtitle: 1.2em;
-        --fs-created-by: 0.6em;
-        --fs-header-links: 1.4em;
-        --fs-page-title: 2em;
+        --fs-site-title: 2rem;
+        --fs-site-subtitle: 1.2rem;
+        --fs-created-by: 0.6rem;
+        --fs-header-links: 1.4rem;
+        --fs-page-title: 2rem;
     
         --fs-h1: 2rem;
         --fs-h2: 2.2rem;
         --fs-h3: 2.5rem;
         --fs-h4: 2.0rem;
-        --fs-table: 1em;
+        --fs-table: 1rem;
     
-        --fs-xxl: 3.2em;
-        --fs-600: 1.3em;
-        --fs-500: 1.2em;
+        --fs-xxl: 3.2rem;
+        --fs-600: 1.3rem;
+        --fs-500: 1.2rem;
         --fs-400: 18px;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
-        --fs-body: 1em;
+        --fs-body: 1rem;
 
         --w-container: 100%;
 
@@ -165,7 +165,7 @@
         --head-a-mwidth: none;
         --head-a-width: 100%;
     
-        --fs-state-letter-item: 2.4em;
+        --fs-state-letter-item: 2.4rem;
 
         /* state links */
         --fs-state-link: 1em;
@@ -181,26 +181,26 @@
 @media screen and (orientation:portrait) and (hover: none) and (pointer: coarse) {
     /* Portrait styles here */
     :root {
-        --fs-site-title: 4em;
-        --fs-site-subtitle: 3.5em;
-        --fs-created-by: 0.6em;
-        --fs-header-links: 2em;
-        --fs-page-title: 5em;
+        --fs-site-title: 4rem;
+        --fs-site-subtitle: 3.5rem;
+        --fs-created-by: 1.2rem;
+        --fs-header-links: 2rem;
+        --fs-page-title: 5rem;
     
         --fs-h1: 4.5rem;
         --fs-h2: 4rem;
         --fs-h3: 3.5rem;
         --fs-h4: 2.0rem;
-        --fs-table: 1em;
+        --fs-table: 1rem;
     
         --fs-xxl: 3.5rem;
         --fs-600: 2.25rem;
         --fs-500: 1.75rem;
-        --fs-400: 16px;
+        --fs-400: 1.8rem;
         --fs-300: 0.8rem;
         --fs-200: 0.6rem;
 
-        --fs-body: 1em;
+        --fs-body: 1rem;
 
         --w-container: 100%;
 
@@ -211,7 +211,7 @@
         --head-a-mwidth: none;
         --head-a-width: 100%;
     
-        --fs-state-letter-item: 3.5em;
+        --fs-state-letter-item: 3.5rem;
 
         /* state links */
         --fs-state-link: 3em;
@@ -277,15 +277,15 @@ only screen and (min-device-pixel-ratio: 1.5) {
     } */
 }
 
-p, span {
+/* p, span {
     font-family: Arial, Helvetica, sans-serif;
     font-size: var(--fs-400);
-}
+} */
 p {
     margin-bottom: var(--p-marg-bot);
 }
 
-.section-div p, .section-div span, .section-div {
+.section-div > p, .section-div > span, .section-div {
     font-size: var(--fs-400) !important;
 }
 
@@ -498,7 +498,7 @@ span.column-header-name {
 
 
 #dev-info {
-    display: block;
+    display: none;
     width: 980px !important;
     border-bottom:rgb(234, 243, 254);
     background-color: rosybrown;
